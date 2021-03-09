@@ -1,5 +1,5 @@
 # LR_Project-WORTH
-"Network Programming" Class Project - University of Pisa
+"Network Programming" Class Project - BSc in Computer Science @ University of Pisa
 
 ## WORTH: WORk TogetHer
 
