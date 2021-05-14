@@ -22,8 +22,8 @@ public class ProjectChatTask implements Runnable {
     volatile boolean lastMessageIsRead = false;
 
 
-    public ProjectChatTask(MulticastSocket socket, String address) throws UnknownHostException {
-        this.multicastSocket = socket;
+    public ProjectChatTask(String address, int port) throws IOException {
+        this.multicastSocket = new MulticastSocket(port);
         this.chatAddress = InetAddress.getByName(address);
         this.messages = new LinkedList<>();
     }
@@ -40,6 +40,7 @@ public class ProjectChatTask implements Runnable {
 
             while (!finish) {
                 try {
+                    multicastSocket.setSoTimeout(1000);;
                     multicastSocket.receive(packet);
 
                     String message = new String(
@@ -62,9 +63,16 @@ public class ProjectChatTask implements Runnable {
                     //ignore
                 }
             }
+
+            multicastSocket.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public MulticastSocket getMulticastSocket() {
+        return multicastSocket;
     }
 
     public boolean projectCancelled(UDPMessage message) {
@@ -80,12 +88,16 @@ public class ProjectChatTask implements Runnable {
     }
 
     public boolean isTerminated() {
+
+        if(!finish) return false;
+
         //if the project is cancelled
         //and the latest messages have not yet been read
         if(finish && !lastMessageIsRead) {
             lastMessageIsRead = true;
             return false;
         }
+
         return true;
     }
 }

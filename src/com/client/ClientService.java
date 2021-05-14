@@ -39,7 +39,6 @@ public class ClientService {
     private RMICallbackNotify callbackNotify;               // callback management
     private Map<String, String> projectChatAddressAndPort;  // projects multicast andress and port
     private LocalDateTime lastListProjectsCall;             // the last time I called listProjects
-    private Map<String, MulticastSocket> projectSockets;    // projects sockets
     private Map<String, ProjectChatTask> projectChats;      // projects chats manager
 
     // set up the client's connection to the server
@@ -57,7 +56,6 @@ public class ClientService {
         this.userStatus = null; // it will be initialized during login
         this.callbackNotify = null; // it will be initialized during login
         this.projectChatAddressAndPort = new HashMap<>();
-        this.projectSockets = new HashMap<>();
         this.isLogged = false;
         this.username = "";
         this.projectChats = new HashMap<>();
@@ -158,10 +156,7 @@ public class ClientService {
             String chatAddress = tokens[0];
             int port = Integer.parseInt(tokens[1]);
 
-            MulticastSocket multicastSocket = new MulticastSocket(port);
-            multicastSocket.setSoTimeout(2000);
-            this.projectSockets.put(projectName, multicastSocket);
-            ProjectChatTask newChat = new ProjectChatTask(multicastSocket, chatAddress);
+            ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
             this.projectChats.put(projectName, newChat);
             new Thread(newChat).start();
         }
@@ -196,9 +191,8 @@ public class ClientService {
             // shutdown threads chat tasks
             shutdownThreadPool();
 
-            // invalidate list of multicast addresses and sockets
+            // invalidate list of multicast addresses
             this.projectChatAddressAndPort = new HashMap<>();
-            this.projectSockets = new HashMap<>();
 
             System.out.println(SuccessMSG.LOGOUT_SUCCESSFUL);
         } else {
@@ -251,11 +245,16 @@ public class ClientService {
             List<String> projectNames = new ArrayList<>();
             for (Project project : projectList) {
                 projectNames.add(project.getName());
+                // initiate the projectChatAddressAndPort map
+                // with multicast address and port for login op.
                 this.getChatAddressAndPort(project.getName());
             }
 
             Set<String> addressKeys = this.projectChatAddressAndPort.keySet();
+            // for each multicast address's key (aka projectName) that I have in memory...
             for (String addressKey : addressKeys) {
+                // ...if that key is not contained in the projectNames list,
+                //  then replace the value with null
                 int index = projectNames.indexOf(addressKey);
                 if (index == -1) {
                     // case 1
@@ -309,10 +308,7 @@ public class ClientService {
         String chatAddress = tokens[0];
         int port = Integer.parseInt(tokens[1]);
 
-        MulticastSocket multicastSocket = new MulticastSocket(port);
-        multicastSocket.setSoTimeout(1000);
-        this.projectSockets.put(projectName, multicastSocket);
-        ProjectChatTask newChat = new ProjectChatTask(multicastSocket, chatAddress);
+        ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
         this.projectChats.put(projectName, newChat);
         new Thread(newChat).start();
 
@@ -564,7 +560,8 @@ public class ClientService {
             chatAddressAndPort = this.getChatAddressAndPort(projectName);
         }
 
-        MulticastSocket multicastSocket = this.projectSockets.get(projectName);
+        ProjectChatTask chat = projectChats.get(projectName);
+        MulticastSocket multicastSocket = chat.getMulticastSocket();
         if (chatAddressAndPort == null || multicastSocket == null) {
             throw new ChatAddressException();
         }
@@ -648,9 +645,6 @@ public class ClientService {
 
             // save for each project its chat address and port
             this.projectChatAddressAndPort.put(projectName, chatAddressAndPort);
-
-            // save for each project its multicast socket
-            this.projectSockets.put(projectName, multicastSocket);
 
             return chatAddressAndPort;
 
