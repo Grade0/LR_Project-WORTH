@@ -19,6 +19,7 @@ public class ProjectChatTask implements Runnable {
     private final InetAddress chatAddress;
     private final LinkedList<UDPMessage> messages;
     volatile boolean finish = false;
+    volatile boolean lastMessageIsRead = false;
 
 
     public ProjectChatTask(MulticastSocket socket, String address) throws UnknownHostException {
@@ -76,5 +77,15 @@ public class ProjectChatTask implements Runnable {
 
     public void terminate() {
         this.finish = true;
+    }
+
+    public boolean isTerminated() {
+        //if the project is cancelled
+        //and the latest messages have not yet been read
+        if(finish && !lastMessageIsRead) {
+            lastMessageIsRead = true;
+            return false;
+        }
+        return true;
     }
 }

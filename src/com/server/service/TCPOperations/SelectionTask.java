@@ -489,10 +489,6 @@ public class SelectionTask implements Runnable {
 
                                 String projectName = arguments.get(0);
                                 try {
-
-                                    // delete project
-                                    data.cancelProject(projectName, username);
-
                                     // the server notifies all users in the project chat
                                     // that the project has been deleted
                                     String chatAddress = data.getProjectChatAddress(projectName);
@@ -500,11 +496,15 @@ public class SelectionTask implements Runnable {
                                     InetAddress group = InetAddress.getByName(chatAddress);
                                     DatagramSocket socket = new DatagramSocket();
 
+                                    // delete project
+                                    data.cancelProject(projectName, username);
+
                                     UDPMessage udpMessage = new UDPMessage(
                                             CommunicationProtocol.SYSTEM_NAME,
                                             CommunicationProtocol.UDP_TERMINATE_MSG,
                                             true
                                     );
+
                                     byte[] byteMessage = this.mapper.writeValueAsBytes(udpMessage);
                                     DatagramPacket packet = new DatagramPacket(
                                             byteMessage,
@@ -512,6 +512,7 @@ public class SelectionTask implements Runnable {
                                             group,
                                             port
                                     );
+
                                     socket.send(packet);
 
                                 } catch (ProjectNotExistException e) {

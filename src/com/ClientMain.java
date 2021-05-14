@@ -117,10 +117,30 @@ public class ClientMain {
                             else serviceOp.cancelProject(splittedCommand[1]);
                             break;
                         case "help":
+                            System.out.println("\nList of available commands: ");
+                            System.out.println("- register           username        password");
+                            System.out.println("- login              username        password");
+                            System.out.println("- logout             username");
+                            System.out.println("- list_users");
+                            System.out.println("- list_online_users");
+                            System.out.println("- list_projects");
+                            System.out.println("- create_project     projectName");
+                            System.out.println("- add_member         projectName     username");
+                            System.out.println("- show_members       projectName");
+                            System.out.println("- show_cards         projectName");
+                            System.out.println("- show_card          projectName     cardName");
+                            System.out.println("- add_card           projectName     cardName     description");
+                            System.out.println("- move_card          projectName     cardName     originList     destinationList");
+                            System.out.println("- get_card_history   projectName     cardName");
+                            System.out.println("- send_chat          projectName     message");
+                            System.out.println("- read_chat          projectName");
+                            System.out.println("- cancel_project     projectName");
                             break;
                         case "exit":
                             finish = true;
                             break;
+                        default:
+                            System.err.println("wrong command, please try again...");
                     }
                 } catch (NotBoundException e) {
                     System.out.println(ErrorMSG.REGISTRY_NOT_BOUND);

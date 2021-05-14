@@ -316,8 +316,8 @@ public class Database implements LocalRegistration, TCPOperations {
 
     @Override
     public void cancelProject(String projectName, String whoRequest) throws ProjectNotExistException, UnauthorizedUserException, ProjectNotCancelableException {
-        Project project;
-        if ((project = this.projects.get(projectName)) == null)
+        Project project = this.projects.get(projectName);
+        if (project == null)
             throw new ProjectNotExistException();
         if (!project.getMembers().contains(whoRequest))
             throw new UnauthorizedUserException();

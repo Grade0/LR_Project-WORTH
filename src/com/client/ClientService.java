@@ -535,20 +535,25 @@ public class ClientService {
     }
 
     public void readChat(String projectName) {
+        ProjectChatTask chat = projectChats.get(projectName);
+        if(chat != null && !chat.isTerminated()) {
+            LinkedList<UDPMessage> messages = chat.getMessages();
 
-        LinkedList<UDPMessage> messages = projectChats.get(projectName).getMessages();
-
-        System.out.println("----------- Reading chat ------------- ");
-        if(messages.size() == 0) System.out.println("No new messages");
-        else {
-            int size = messages.size();
-            while(size > 0) {
-                UDPMessage message = messages.removeFirst();
-                System.out.println(message.getAuthor() + ": " + message.getMessage());
-                size--;
+            System.out.println("----------- Reading chat ------------- ");
+            if (messages.size() == 0) System.out.println("No new messages");
+            else {
+                int size = messages.size();
+                while (size > 0) {
+                    UDPMessage message = messages.removeFirst();
+                    System.out.println(message.getAuthor() + ": " + message.getMessage());
+                    size--;
+                }
             }
+            System.out.println("------------- End chat --------------- ");
         }
-        System.out.println("------------- End chat --------------- ");
+        else {
+            System.err.println("project does not exist or has been canceled");
+        }
     }
 
     public void sendChatMsg(String projectName, String message)
@@ -588,6 +593,7 @@ public class ClientService {
         );
 
         multicastSocket.send(packet);
+        System.out.println("Message sent");
     }
 
     public void cancelProject(String projectName)
