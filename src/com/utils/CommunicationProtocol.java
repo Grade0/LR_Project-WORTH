@@ -45,15 +45,16 @@ public abstract class CommunicationProtocol {
     public static final int CARD_NOT_EXISTS = 103;
     public static final int UNAUTHORIZED = 104;
     public static final int CHARS_NOT_ALLOWED = 105;
-    public static final int LOGIN_WRONGPWD = 1;
-    public static final int LOGIN_ALREADY_LOGGED = 2;
-    public static final int CREATEPROJECT_ALREADYEXISTS = 1;
-    public static final int CREATEPROJECT_NOMOREADDRESSES = 2;
-    public static final int CREATEPROJECT_NOMOREPORTS = 3;
-    public static final int ADD_CARD_ALREADYEXISTS = 1;
-    public static final int ADD_MEMBER_ALREADYPRESENT = 1;
-    public static final int MOVE_CARD_NOT_ALLOWED = 1;
-    public static final int CANCELPROJECT_NOTCANCELABLE = 1;
+    public static final int LOGIN_WRONGPWD = 106;
+    public static final int LOGIN_ALREADY_LOGGED = 107;
+    public static final int CREATEPROJECT_ALREADYEXISTS = 108;
+    public static final int CREATEPROJECT_NOMOREADDRESSES = 109;
+    public static final int CREATEPROJECT_NOMOREPORTS = 110;
+    public static final int ADD_CARD_ALREADYEXISTS = 111;
+    public static final int ADD_MEMBER_ALREADYPRESENT = 112;
+    public static final int MOVE_CARD_NOT_ALLOWED = 113;
+    public static final int CANCELPROJECT_NOTCANCELABLE = 114;
+    public static final int USER_NOT_LOGGED = 115;
 
     /**
      * COMMANDS

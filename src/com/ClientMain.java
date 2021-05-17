@@ -20,6 +20,7 @@ public class ClientMain {
     public static void main(String[] args) {
 
         System.out.println("Welcome on WORTH (WORkTogetHer) Service");
+        System.out.println("(enter the 'help' command for the list of available operations)");
         avvioMenu();
         System.out.println("Client Shutdown, bye!");
 
@@ -40,15 +41,16 @@ public class ClientMain {
 
                     switch (splittedCommand[0].toLowerCase()) {
                         case CommunicationProtocol.REGISTER_CMD:
-                            if(splittedCommand.length < 3) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 3) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.register(splittedCommand[1], splittedCommand[2]);
                             break;
                         case CommunicationProtocol.LOGIN_CMD:
-                            if(splittedCommand.length < 3) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 3) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.login(splittedCommand[1], splittedCommand[2]);
                             break;
                         case CommunicationProtocol.LOGOUT_CMD:
-                            serviceOp.logout();
+                            if(splittedCommand.length < 2) System.err.println(ErrorMSG.EMPTY_FIELD);
+                            else serviceOp.logout(splittedCommand[1]);
                             break;
                         case CommunicationProtocol.LIST_USERS_CMD:
                             serviceOp.listUsers();
@@ -60,27 +62,27 @@ public class ClientMain {
                             serviceOp.listProjects();
                             break;
                         case CommunicationProtocol.CREATE_PROJECT_CMD:
-                            if(splittedCommand.length < 2) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 2) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.createProject(splittedCommand[1]);
                             break;
                         case CommunicationProtocol.ADD_MEMBER_CMD:
-                            if(splittedCommand.length < 3) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 3) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.addMember(splittedCommand[1], splittedCommand[2]);
                             break;
                         case CommunicationProtocol.SHOW_MEMBERS_CMD:
-                            if(splittedCommand.length < 2) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 2) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.showMembers(splittedCommand[1]);
                             break;
                         case CommunicationProtocol.SHOW_CARDS_CMD:
-                            if(splittedCommand.length < 2) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 2) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.showCards(splittedCommand[1]);
                             break;
                         case CommunicationProtocol.SHOW_CARD_CMD:
-                            if(splittedCommand.length < 3) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 3) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.showCard(splittedCommand[1], splittedCommand[2]);
                             break;
                         case CommunicationProtocol.ADD_CARD_CMD:
-                            if(splittedCommand.length < 4) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 4) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else {
                                 String desc = "";
                                 for (int i = 3; i < splittedCommand.length; i++) {
@@ -90,20 +92,20 @@ public class ClientMain {
                             }
                             break;
                         case CommunicationProtocol.MOVE_CARD_CMD:
-                            if(splittedCommand.length < 5) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 5) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.moveCard(splittedCommand[1], splittedCommand[2],
                                     CardStatus.retriveFromString(splittedCommand[3]), CardStatus.retriveFromString(splittedCommand[4]));
                             break;
                         case CommunicationProtocol.CARD_HISTORY_CMD:
-                            if(splittedCommand.length < 3) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 3) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.getCardHistory(splittedCommand[1], splittedCommand[2]);
                             break;
                         case CommunicationProtocol.READ_CHAT_CMD:
-                            if(splittedCommand.length < 2) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 2) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.readChat(splittedCommand[1]);
                             break;
                         case CommunicationProtocol.SEND_CHAT_CMD:
-                            if(splittedCommand.length < 3) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 3) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else {
                                 String message = "";
                                 for (int i = 2; i < splittedCommand.length; i++) {
@@ -113,7 +115,7 @@ public class ClientMain {
                             }
                             break;
                         case CommunicationProtocol.CANCELPROJECT_CMD:
-                            if(splittedCommand.length < 2) System.err.println("Too few arguments, try again");
+                            if(splittedCommand.length < 2) System.err.println(ErrorMSG.EMPTY_FIELD);
                             else serviceOp.cancelProject(splittedCommand[1]);
                             break;
                         case "help":
@@ -182,6 +184,8 @@ public class ClientMain {
                     System.err.println(ErrorMSG.UNOBTAINABLE_ADDRESS);
                 } catch (ProjectNotCancelableException e) {
                     System.err.println(ErrorMSG.PROJECT_NOT_CANCELABLE);
+                } catch (UserNotLoggedException e) {
+                    System.err.println(ErrorMSG.NOT_LOGGED);
                 }
 
             }

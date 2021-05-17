@@ -27,7 +27,7 @@ public class ErrorMSG {
             "We're sorry, but this field contains some not allowed characters.\n" +
                     "It should contain only lower alphanumeric characters and _";
 
-    public static final String EMPTY_FIELD = "Some fields seems to be empty or blank.\n";
+    public static final String EMPTY_FIELD = "Too few arguments, please try again\n";
 
     public static String USERNAME_NOT_AVAILABLE = "We're sorry, but the username you've chosen is not available.\n" +
             "Please try with another one";
@@ -36,6 +36,8 @@ public class ErrorMSG {
 
     public static final String USER_ALREADY_LOGGED = "Sorry, but seems that you're already logged-in" +
             " from another terminal.";
+
+    public static final String SOMEONE_ALREADY_LOGGED = "Sorry, but seems that you're already logged-in as ";
 
     public static final String CARD_NOT_EXISTS = "This card not exists.";
 
@@ -71,5 +73,7 @@ public class ErrorMSG {
 
     public static final String DATAGRAM_TOO_BIG = "The message you're trying to send is too big.";
 
-    public static final String NOT_LOGGED = "Sorry, but seems that you're not logged yet";
+    public static final String NOT_LOGGED = "Sorry, but seems that you're not logged yet.";
+
+    public static final String NOT_LOGGED_AS = "Sorry, but seems that you're not logged as ";
 }

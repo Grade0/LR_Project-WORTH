@@ -195,6 +195,8 @@ public class SelectionTask implements Runnable {
 
                                         // notify other users that 'username' is offline
                                         callbackService.notifyUsers(username, UserStatus.OFFLINE);
+
+                                        attachment.setUsername(null);
                                     } catch (UserNotExistException e) {
                                         responseCode = CommunicationProtocol.USER_NOT_EXISTS;
                                     }
@@ -212,6 +214,9 @@ public class SelectionTask implements Runnable {
                                         responseCode = CommunicationProtocol.USER_NOT_EXISTS;
                                     }
                                 }
+                                else {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                }
                                 break;
                             }
                             case CommunicationProtocol.CREATE_PROJECT_CMD: {
@@ -223,6 +228,10 @@ public class SelectionTask implements Runnable {
 
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 if (!projectName.matches(CommunicationProtocol.STRING_REGEX)) {
@@ -250,6 +259,10 @@ public class SelectionTask implements Runnable {
 
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 String userToAdd = arguments.get(1);
@@ -277,6 +290,10 @@ public class SelectionTask implements Runnable {
 
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
 
@@ -298,6 +315,10 @@ public class SelectionTask implements Runnable {
                                 }
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 try {
@@ -319,6 +340,10 @@ public class SelectionTask implements Runnable {
 
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 String cardName = arguments.get(1);
@@ -344,6 +369,10 @@ public class SelectionTask implements Runnable {
                                 }
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 String cardName = arguments.get(1);
@@ -374,6 +403,10 @@ public class SelectionTask implements Runnable {
                                 }
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 String cardName = arguments.get(1);
@@ -440,6 +473,10 @@ public class SelectionTask implements Runnable {
 
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 String cardName = arguments.get(1);
@@ -465,6 +502,10 @@ public class SelectionTask implements Runnable {
 
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
 
@@ -486,6 +527,10 @@ public class SelectionTask implements Runnable {
                                 }
                                 // get the user who made the request
                                 String username = attachment.getUsername();
+                                if(username == null) {
+                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
+                                    break;
+                                }
 
                                 String projectName = arguments.get(0);
                                 try {
