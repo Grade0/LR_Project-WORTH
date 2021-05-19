@@ -61,22 +61,23 @@ public class ClientService {
         this.projectChats = new HashMap<>();
     }
 
-    /**
-     * @// TODO: togliere
-     */
     public void closeConnection() {
-        if (!this.isLogged) return;
         try {
-            this.unregisterForCallback();
+            if (this.isLogged) {
+                this.unregisterForCallback();
+                // shutdown threads chat receivers
+                shutdownThreadPool();
+            }
+
+            // preparing message to send
+            RequestMessage requestMessage = new RequestMessage(CommunicationProtocol.EXIT_CMD);
+            // could throw CommunicationException due to server down
+            this.sendTCPRequest(requestMessage);
+
             this.socket.close();
-
-            // shutdown threads chat receivers
-            shutdownThreadPool();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            // ignore
         }
-
     }
 
     /**
@@ -200,8 +201,9 @@ public class ClientService {
                 // shutdown threads chat tasks
                 shutdownThreadPool();
 
-                // invalidate list of multicast addresses
+                // invalidate list of multicast addresses and chat threads
                 this.projectChatAddressAndPort = new HashMap<>();
+                this.projectChats = new HashMap<>();
 
                 System.out.println(SuccessMSG.LOGOUT_SUCCESSFUL);
             } else {

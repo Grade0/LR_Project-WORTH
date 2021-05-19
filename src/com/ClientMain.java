@@ -139,6 +139,7 @@ public class ClientMain {
                             System.out.println("- cancel_project     projectName");
                             break;
                         case "exit":
+                            serviceOp.closeConnection();
                             finish = true;
                             break;
                         default:
