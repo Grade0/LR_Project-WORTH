@@ -1,7 +1,7 @@
 {
-  "name" : "prova3",
-  "members" : [ "usr1" ],
-  "creationDateTime" : "2021-05-17T13:58:59.9372225",
+  "name" : "prova4",
+  "members" : [ "usr1", "usr2" ],
+  "creationDateTime" : "2021-05-18T19:33:23.1653371",
   "statusLists" : {
     "TOBEREVISED" : [ ],
     "DONE" : [ ],

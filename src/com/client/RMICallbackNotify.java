@@ -18,5 +18,13 @@ public interface RMICallbackNotify extends Remote {
      * @param status the user new status
      * @throws RemoteException if there are errors with the rmi service
      */
-    void notifyUpdate(String username, UserStatus status) throws RemoteException;
+    void notifyUserStatus(String username, UserStatus status) throws RemoteException;
+
+    /**
+     *
+     * @param projectName of the new project
+     * @param chatAddressAndPort of the new project chat
+     * @throws RemoteException if there are errors with the rmi service
+     */
+    void notifyNewProject(String projectName, String chatAddressAndPort) throws RemoteException;
 }

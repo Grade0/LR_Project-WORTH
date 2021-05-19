@@ -13,17 +13,18 @@ import java.rmi.RemoteException;
 public interface RMICallbackService extends Remote {
 
     /**
+     * @param username of the client
      * @param client to register for the service
      *
      * @throws RemoteException if there are connection errors
      * */
-    void registerForCallback(RMICallbackNotify client) throws RemoteException;
+    void registerForCallback(String username, RMICallbackNotify client) throws RemoteException;
 
     /**
-     * @param client to be de-registered to the service
+     * @param username of the client to be de-registered to the service
      *
      * @throws RemoteException if there are connection errors
      * */
-    void unregisterForCallback(RMICallbackNotify client) throws RemoteException;
+    void unregisterForCallback(String username) throws RemoteException;
 
 }

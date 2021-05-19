@@ -76,6 +76,7 @@ public class ClientService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     /**
@@ -116,7 +117,13 @@ public class ClientService {
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
             if (responseCode == CommunicationProtocol.LOGIN_ALREADY_LOGGED) throw new AlreadyLoggedInException();
 
-            // everything through
+            // everything went through
+            // I'm online
+            this.username = username;
+            this.isLogged = true;
+
+            System.out.println(SuccessMSG.LOGIN_SUCCESSFUL + "\n");
+
             try {
                 // saving server reply
                 this.userStatus = this.mapper.readValue(
@@ -128,19 +135,16 @@ public class ClientService {
                 this.userStatus = Collections.synchronizedMap(this.userStatus);
 
                 // instantiate callback
-                this.callbackNotify = new RMICallbackNotifyImpl(this.userStatus);
+                this.callbackNotify = new RMICallbackNotifyImpl(
+                        this.userStatus,
+                        this.projectChatAddressAndPort,
+                        this.projectChats);
 
                 // callback registration request
                 this.registerForCallback();
             } catch (IOException | NotBoundException e) {
                 e.printStackTrace();
             }
-
-            // I'm online
-            this.username = username;
-            this.isLogged = true;
-
-            System.out.println(SuccessMSG.LOGIN_SUCCESSFUL + "\n");
 
             // retrieve users list
             this.listUsers();
@@ -213,7 +217,7 @@ public class ClientService {
             System.out.println("User list with their status:");
 
             for (Map.Entry<String, UserStatus> entry : userStatus.entrySet()) {
-                System.out.println("\t " + entry.getKey() + " - " + entry.getValue());
+                System.out.println("- " + entry.getKey() + ": " + entry.getValue());
             }
         } else {
             System.err.println(ErrorMSG.NOT_LOGGED);
@@ -226,7 +230,7 @@ public class ClientService {
 
             for (Map.Entry<String, UserStatus> entry : userStatus.entrySet()) {
                 if (entry.getValue() == UserStatus.ONLINE)
-                    System.out.println("\t " + entry.getKey() + ": " + entry.getValue());
+                    System.out.println("- " + entry.getKey() + ": " + entry.getValue());
             }
         } else {
             System.err.println(ErrorMSG.NOT_LOGGED);
@@ -290,7 +294,7 @@ public class ClientService {
                 System.out.println("\nMy projects list:");
                 if (projectNames.size() == 0) System.out.println("\t empty");
                 for (String project : projectNames) {
-                    System.out.println(project);
+                    System.out.println("- " + project);
                 }
             } catch (IOException | UnauthorizedUserException | ProjectNotExistException e) {
                 e.printStackTrace();
@@ -602,7 +606,7 @@ public class ClientService {
                 }
                 System.out.println("------------- End chat --------------- ");
             } else {
-                System.err.println("project does not exist or has been canceled");
+                System.err.println(ErrorMSG.PROJECT_NOT_EXISTS);
             }
         } else {
             System.err.println(ErrorMSG.NOT_LOGGED);
@@ -704,11 +708,6 @@ public class ClientService {
                     new TypeReference<String>() {}
             );
 
-            String[] tokens = chatAddressAndPort.split(":");
-            int port = Integer.parseInt(tokens[1]);
-            MulticastSocket multicastSocket = new MulticastSocket(port);
-            multicastSocket.setSoTimeout(1000); // receive bloccante per 1 secondo
-
             // save for each project its chat address and port
             this.projectChatAddressAndPort.put(projectName, chatAddressAndPort);
 
@@ -808,19 +807,19 @@ public class ClientService {
         RMICallbackService callbackService =
                 (RMICallbackService) registry.lookup(CommunicationProtocol.CALLBACK_SERVICE_NAME);
         // register to the service
-        callbackService.registerForCallback(this.callbackNotify);
+        callbackService.registerForCallback(this.username, this.callbackNotify);
     }
 
     /**
      * Unregister the client from the callback service
      * */
     private void unregisterForCallback() throws RemoteException, NotBoundException {
-        // reates RMI connections for the callback service
+        // creates RMI connections for the callback service
         Registry registry = LocateRegistry.getRegistry(CommunicationProtocol.REGISTRY_PORT);
         RMICallbackService callbackService =
                 (RMICallbackService) registry.lookup(CommunicationProtocol.CALLBACK_SERVICE_NAME);
         // unregister from the service
-        callbackService.unregisterForCallback(this.callbackNotify);
+        callbackService.unregisterForCallback(this.username);
     }
 
 }

@@ -268,6 +268,10 @@ public class SelectionTask implements Runnable {
                                 String userToAdd = arguments.get(1);
                                 try {
                                     data.addMember(projectName, userToAdd, username);
+
+                                    String chatAddressAndPort = data.readChat(projectName, userToAdd);
+                                    // notifies user 'username' that he/she is now a member of the project 'projectName'
+                                    callbackService.notifyProject(userToAdd, projectName, chatAddressAndPort);
                                 } catch (ProjectNotExistException e) {
                                     responseCode = CommunicationProtocol.PROJECT_NOT_EXISTS;
                                 } catch (UnauthorizedUserException e) {
@@ -277,7 +281,6 @@ public class SelectionTask implements Runnable {
                                 } catch (UserNotExistException e) {
                                     responseCode = CommunicationProtocol.USER_NOT_EXISTS;
                                 }
-
 
                                 break;
                             }

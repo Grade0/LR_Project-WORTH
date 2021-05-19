@@ -32,14 +32,14 @@ public class ErrorMSG {
     public static String USERNAME_NOT_AVAILABLE = "We're sorry, but the username you've chosen is not available.\n" +
             "Please try with another one";
 
-    public static final String USERNAME_NOT_EXISTS = "This username does not exists";
+    public static final String USERNAME_NOT_EXISTS = "This username does not exist";
 
     public static final String USER_ALREADY_LOGGED = "Sorry, but seems that you're already logged-in" +
             " from another terminal.";
 
     public static final String SOMEONE_ALREADY_LOGGED = "Sorry, but seems that you're already logged-in as ";
 
-    public static final String CARD_NOT_EXISTS = "This card not exists.";
+    public static final String CARD_NOT_EXISTS = "This card does not exist.";
 
     public static final String OPERATION_NOT_ALLOWED = "Sorry, but seems that you're trying" +
             " to do an illegal operation.";
