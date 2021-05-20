@@ -190,9 +190,6 @@ public class Database implements LocalRegistration, TCPOperations {
         }
     }
 
-    /**
-     * @// TODO: da migliorare, troppo dispendioso controllare uno ad'uno?
-     */
     @Override
     public List<Project> listProjects(String username) throws UserNotExistException {
         if (!this.users.containsKey(username))
@@ -242,9 +239,6 @@ public class Database implements LocalRegistration, TCPOperations {
         return members;
     }
 
-    /**
-     * @// TODO: da modificare: invece del hashmap di liste, fare una lista unica di card?
-     */
     @Override
     public Map<CardStatus, List<String>> showCards(String projectName, String whoRequest) throws ProjectNotExistException, UnauthorizedUserException {
         Project project;

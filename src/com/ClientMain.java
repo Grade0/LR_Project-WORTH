@@ -5,6 +5,7 @@ import com.exceptions.*;
 import com.server.data.CardStatus;
 import com.utils.ErrorMSG;
 import com.utils.CommunicationProtocol;
+import com.utils.SuccessMSG;
 
 import javax.naming.CommunicationException;
 import java.io.IOException;
@@ -86,7 +87,7 @@ public class ClientMain {
                             else {
                                 String desc = "";
                                 for (int i = 3; i < splittedCommand.length; i++) {
-                                    desc = desc + splittedCommand[i] + " ";
+                                    desc += splittedCommand[i] + " ";
                                 }
                                 serviceOp.addCard(splittedCommand[1], splittedCommand[2], desc);
                             }
@@ -143,10 +144,10 @@ public class ClientMain {
                             finish = true;
                             break;
                         default:
-                            System.err.println("wrong command, please try again...");
+                            System.err.println(ErrorMSG.WRONG_COMMAND);
                     }
                 } catch (NotBoundException e) {
-                    System.out.println(ErrorMSG.REGISTRY_NOT_BOUND);
+                    System.err.println(ErrorMSG.REGISTRY_NOT_BOUND);
                 } catch (UsernameNotAvailableException e) {
                     System.err.println(ErrorMSG.USERNAME_NOT_AVAILABLE);
                 } catch (PasswordTooShortException e) {
@@ -192,7 +193,7 @@ public class ClientMain {
             }
 
         } catch (IOException e) {
-            System.out.println(ErrorMSG.GENERIC_ERROR);
+            System.err.println(ErrorMSG.GENERIC_ERROR);
         }
     }
 }

@@ -72,7 +72,7 @@ public abstract class CommunicationProtocol {
     public static final String SHOW_CARD_CMD = "show_card";
     public static final String ADD_CARD_CMD = "add_card";
     public static final String MOVE_CARD_CMD = "move_card";
-    public static final String CARD_HISTORY_CMD = "card_history";
+    public static final String CARD_HISTORY_CMD = "get_card_history";
     public static final String READ_CHAT_CMD = "read_chat";
     public static final String SEND_CHAT_CMD = "send_chat";
     public static final String CANCELPROJECT_CMD = "cancel_project";

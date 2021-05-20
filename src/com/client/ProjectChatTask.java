@@ -17,6 +17,7 @@ public class ProjectChatTask implements Runnable {
 
     private final MulticastSocket multicastSocket;
     private final InetAddress chatAddress;
+    private final int port;
     private final LinkedList<UDPMessage> messages;
     volatile boolean finish = false;
     volatile boolean lastMessageIsRead = false;
@@ -25,6 +26,7 @@ public class ProjectChatTask implements Runnable {
     public ProjectChatTask(String address, int port) throws IOException {
         this.multicastSocket = new MulticastSocket(port);
         this.chatAddress = InetAddress.getByName(address);
+        this.port = port;
         this.messages = new LinkedList<>();
     }
 
@@ -40,7 +42,7 @@ public class ProjectChatTask implements Runnable {
 
             while (!finish) {
                 try {
-                    multicastSocket.setSoTimeout(1000);;
+                    multicastSocket.setSoTimeout(1000);
                     multicastSocket.receive(packet);
 
                     String message = new String(
@@ -75,12 +77,20 @@ public class ProjectChatTask implements Runnable {
         return multicastSocket;
     }
 
-    public boolean projectCancelled(UDPMessage message) {
-        return message.isFromSystem() && message.getMessage().equals(CommunicationProtocol.UDP_TERMINATE_MSG);
+    public InetAddress getChatAddress() {
+        return chatAddress;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public LinkedList<UDPMessage> getMessages() {
         return this.messages;
+    }
+
+    public boolean projectCancelled(UDPMessage message) {
+        return message.isFromSystem() && message.getMessage().equals(CommunicationProtocol.UDP_TERMINATE_MSG);
     }
 
     public void terminate() {

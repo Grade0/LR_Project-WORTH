@@ -21,7 +21,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -37,8 +36,6 @@ public class ClientService {
     private final ObjectMapper mapper;                      // mapper for serialization / deserialization
     private Map<String, UserStatus> userStatus;             // users status list
     private RMICallbackNotify callbackNotify;               // callback management
-    private Map<String, String> projectChatAddressAndPort;  // projects multicast address and port
-    private LocalDateTime lastListProjectsCall;             // the last time I called listProjects
     private Map<String, ProjectChatTask> projectChats;      // projects chats manager
 
     // set up the client's connection to the server
@@ -55,29 +52,26 @@ public class ClientService {
 
         this.userStatus = null; // it will be initialized during login
         this.callbackNotify = null; // it will be initialized during login
-        this.projectChatAddressAndPort = new HashMap<>();
         this.isLogged = false;
         this.username = "";
         this.projectChats = new HashMap<>();
     }
 
-    public void closeConnection() {
+    public void closeConnection() throws IOException {
         try {
             if (this.isLogged) {
                 this.unregisterForCallback();
                 // shutdown threads chat receivers
                 shutdownThreadPool();
             }
-
             // preparing message to send
             RequestMessage requestMessage = new RequestMessage(CommunicationProtocol.EXIT_CMD);
             // could throw CommunicationException due to server down
             this.sendTCPRequest(requestMessage);
-
-            this.socket.close();
         } catch (Exception e) {
             // ignore
         }
+        this.socket.close();
     }
 
     /**
@@ -136,10 +130,7 @@ public class ClientService {
                 this.userStatus = Collections.synchronizedMap(this.userStatus);
 
                 // instantiate callback
-                this.callbackNotify = new RMICallbackNotifyImpl(
-                        this.userStatus,
-                        this.projectChatAddressAndPort,
-                        this.projectChats);
+                this.callbackNotify = new RMICallbackNotifyImpl(this.userStatus, this.projectChats);
 
                 // callback registration request
                 this.registerForCallback();
@@ -153,19 +144,6 @@ public class ClientService {
             // retrieve projects list that I'm part of
             this.listProjects();
 
-            // for each project I create a thread assigned to receive multicast chat messages
-            for (Map.Entry<String, String> entry : projectChatAddressAndPort.entrySet()) {
-                String projectName = entry.getKey();
-                String chatAddressAndPort = entry.getValue();
-
-                String[] tokens = chatAddressAndPort.split(":");
-                String chatAddress = tokens[0];
-                int port = Integer.parseInt(tokens[1]);
-
-                ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
-                this.projectChats.put(projectName, newChat);
-                new Thread(newChat).start();
-            }
         } else {
             System.err.println(ErrorMSG.SOMEONE_ALREADY_LOGGED + this.username);
         }
@@ -201,8 +179,7 @@ public class ClientService {
                 // shutdown threads chat tasks
                 shutdownThreadPool();
 
-                // invalidate list of multicast addresses and chat threads
-                this.projectChatAddressAndPort = new HashMap<>();
+                // invalidate list of chat threads
                 this.projectChats = new HashMap<>();
 
                 System.out.println(SuccessMSG.LOGOUT_SUCCESSFUL);
@@ -256,47 +233,42 @@ public class ClientService {
                         }
                 );
 
-                /*
-                 * invalidate from the multicast address map
-                 * 1) all deleted projects
-                 * 2) all projects with the same name as deleted projects
-                 * of which the user was part of
-                 */
                 List<String> projectNames = new ArrayList<>();
                 for (Project project : projectList) {
-                    projectNames.add(project.getName());
-                    // initiate the projectChatAddressAndPort map
-                    // with multicast address and port for login op.
-                    this.getChatAddressAndPort(project.getName());
-                }
+                    String projectName = project.getName();
+                    projectNames.add(projectName);
 
-                Set<String> addressKeys = this.projectChatAddressAndPort.keySet();
-                // for each multicast address's key (aka projectName) that I have in memory...
-                for (String addressKey : addressKeys) {
-                    // ...if that key is not contained in the projectNames list,
-                    //  then replace the value with null
-                    int index = projectNames.indexOf(addressKey);
-                    if (index == -1) {
-                        // case 1
-                        this.projectChatAddressAndPort.replace(addressKey, null);
-                    } else {
-                        // case 2
-                        if (this.lastListProjectsCall != null) {
-                            Project project = projectList.get(index);
-                            if (this.lastListProjectsCall.isBefore(project.getCreationDateTime())) {
-                                this.projectChatAddressAndPort.replace(addressKey, null);
-                            }
-                        }
+                    // initiate the projectChat threads
+                    if(projectChats.get(projectName) == null) {
+                        String chatAddressAndPort =  getChatAddressAndPort(projectName);
+
+                        String[] tokens = chatAddressAndPort.split(":");
+                        String chatAddress = tokens[0];
+                        int port = Integer.parseInt(tokens[1]);
+
+                        ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
+                        this.projectChats.put(projectName, newChat);
+                        new Thread(newChat).start();
                     }
                 }
 
-                // update last call variable
-                this.lastListProjectsCall = LocalDateTime.now(CommunicationProtocol.ZONE_ID);
+                // invalidate from the projectChats map all deleted projects
+                // for each chatTask's key (aka projectName) that I have in memory...
+                for (Map.Entry<String, ProjectChatTask> chats : this.projectChats.entrySet()) {
+                    // ...if that key is not contained in the projectNames list,
+                    //  then remove the entry
+                    int index = projectNames.indexOf(chats.getKey());
+                    if (index == -1) {
+                        this.projectChats.remove(chats.getKey(), chats.getValue());
+                    }
+                }
 
                 System.out.println("\nMy projects list:");
                 if (projectNames.size() == 0) System.out.println("\t empty");
-                for (String project : projectNames) {
-                    System.out.println("- " + project);
+                else {
+                    for (String project : projectNames) {
+                        System.out.println("- " + project);
+                    }
                 }
             } catch (IOException | UnauthorizedUserException | ProjectNotExistException e) {
                 e.printStackTrace();
@@ -393,9 +365,9 @@ public class ClientService {
                         }
                 );
 
-                System.out.println(projectName + " project member list: ");
+                System.out.println("Project \"" + projectName + "\" member-list: ");
                 for (String member : members) {
-                    System.out.println(member);
+                    System.out.println("- " + member);
                 }
 
             } catch (IOException e) {
@@ -484,7 +456,7 @@ public class ClientService {
                 );
 
                 System.out.println("Card name: " + card.getName());
-                System.out.println("Card descption: " + card.getDescription());
+                System.out.println("Card description: " + card.getDescription());
                 System.out.println("Card status: " + card.getStatus());
 
             } catch (IOException e) {
@@ -526,6 +498,9 @@ public class ClientService {
     public void moveCard(String projectName, String cardName, CardStatus from, CardStatus to)
             throws CommunicationException, ProjectNotExistException, UnauthorizedUserException, OperationNotAllowedException, CardNotExistException {
         if(isLogged) {
+
+            if(!this.isValid(from) || !this.isValid(to)) throw new OperationNotAllowedException();
+
             // preparing message to send
             RequestMessage requestMessage = new RequestMessage(
                     CommunicationProtocol.MOVE_CARD_CMD,
@@ -578,8 +553,13 @@ public class ClientService {
                 );
 
                 System.out.println("History of the " + cardName + " card of the " + projectName + " project:");
-                for (Movement movement : movements) {
-                    System.out.println(movement);
+                if(movements.size() == 0) System.out.println("The card is in TODO status and has not yet been moved by anyone");
+                else {
+                    for (Movement movement : movements) {
+                        System.out.println("from: " + movement.getFrom());
+                        System.out.println("to:   " + movement.getTo());
+                        System.out.println("when: " + movement.getWhen() + "\n");
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -618,22 +598,14 @@ public class ClientService {
     public void sendChatMsg(String projectName, String message)
             throws ChatAddressException, IOException, DatagramTooBigException, ProjectNotExistException, UnauthorizedUserException, CommunicationException {
         if(isLogged) {
-            String chatAddressAndPort = this.projectChatAddressAndPort.get(projectName);
-
-            if (chatAddressAndPort == null) {
-                chatAddressAndPort = this.getChatAddressAndPort(projectName);
-            }
-
             ProjectChatTask chat = projectChats.get(projectName);
-            MulticastSocket multicastSocket = chat.getMulticastSocket();
-            if (chatAddressAndPort == null || multicastSocket == null) {
-                throw new ChatAddressException();
-            }
-            String[] tokens = chatAddressAndPort.split(":");
-            String chatAddress = tokens[0];
-            int port = Integer.parseInt(tokens[1]);
+            if(chat == null) throw new ProjectNotExistException();
 
-            InetAddress group = InetAddress.getByName(chatAddress);
+            MulticastSocket multicastSocket = chat.getMulticastSocket();
+            if (multicastSocket == null) throw new ChatAddressException();
+
+            int port = chat.getPort();
+            InetAddress group = chat.getChatAddress();
 
             UDPMessage udpMessage = new UDPMessage(
                     this.username,
@@ -652,8 +624,12 @@ public class ClientService {
                     group,
                     port
             );
-
-            multicastSocket.send(packet);
+            try {
+                multicastSocket.send(packet);
+            } catch (IOException e) {
+                System.err.println(ErrorMSG.PROJECT_NOT_EXISTS);
+                return;
+            }
             System.out.println("Message sent");
         } else {
             System.err.println(ErrorMSG.NOT_LOGGED);
@@ -710,15 +686,28 @@ public class ClientService {
                     new TypeReference<String>() {}
             );
 
-            // save for each project its chat address and port
-            this.projectChatAddressAndPort.put(projectName, chatAddressAndPort);
-
             return chatAddressAndPort;
 
         } catch (IOException e) {
             e.printStackTrace();
             throw new CommunicationException();
         }
+    }
+
+    /**
+     * Called by MOVE_CARD_CMD to verify
+     * if the 'from' or 'to' value are valid
+     *
+     * @param test value to be verify
+     * @return true if test is a valid value
+     */
+    private boolean isValid(CardStatus test) {
+        for(CardStatus status : CardStatus.values()) {
+            if(status == test) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -779,7 +768,7 @@ public class ClientService {
                 if (messageLength == -1)
                     messageLength = readBuffer.getInt();
 
-                responseMessage.append(StandardCharsets.UTF_8.decode(readBuffer).toString());
+                responseMessage.append(StandardCharsets.UTF_8.decode(readBuffer));
 
                 readBuffer.clear();
             } while (totalReaded < messageLength);

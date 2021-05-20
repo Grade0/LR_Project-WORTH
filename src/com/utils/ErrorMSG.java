@@ -13,8 +13,6 @@ public class ErrorMSG {
     public static final String CONNECTION_ERROR = "Sorry, we encountered some connection problems.\n" +
             "If the problem persists, please close and restart the application";
 
-    public static final String CONNECTION_REFUSED = "Sorry, but the connection seems to be refused by the server";
-
     public static final String REGISTRY_NOT_BOUND = "Sorry, the lookup registry seems has no associated binding";
 
     public static final String PASSWORD_TOO_SHORT =
@@ -76,4 +74,6 @@ public class ErrorMSG {
     public static final String NOT_LOGGED = "Sorry, but seems that you're not logged yet.";
 
     public static final String NOT_LOGGED_AS = "Sorry, but seems that you're not logged as ";
+
+    public static final String WRONG_COMMAND = "wrong command, please try again...";
 }

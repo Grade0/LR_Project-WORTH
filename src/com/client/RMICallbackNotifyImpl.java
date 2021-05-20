@@ -14,15 +14,12 @@ import java.util.Map;
  */
 public class RMICallbackNotifyImpl extends UnicastRemoteObject implements RMICallbackNotify {
     private final Map<String, UserStatus> userStatus;
-    private final Map<String, String> projectChatAddressAndPort;
     private final Map<String, ProjectChatTask> projectChats;
 
     public RMICallbackNotifyImpl(Map<String, UserStatus> userStatus,
-                                 Map<String, String> projectChatAddressAndPort,
                                  Map<String, ProjectChatTask> projectChats) throws RemoteException {
         super();
         this.userStatus = userStatus;
-        this.projectChatAddressAndPort = projectChatAddressAndPort;
         this.projectChats = projectChats;
     }
 
@@ -34,8 +31,6 @@ public class RMICallbackNotifyImpl extends UnicastRemoteObject implements RMICal
     }
 
     public synchronized void notifyNewProject(String projectName, String chatAddressAndPort) throws RemoteException {
-        this.projectChatAddressAndPort.put(projectName, chatAddressAndPort);
-
         String[] tokens = chatAddressAndPort.split(":");
         String chatAddress = tokens[0];
         int port = Integer.parseInt(tokens[1]);

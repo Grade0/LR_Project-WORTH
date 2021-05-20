@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 
 /**
  * @author Davide Chen
@@ -22,6 +24,8 @@ public class Movement implements Serializable {
     public Movement(CardStatus from, CardStatus to) {
         this.from = from;
         this.to = to;
+
+        //Get current date time
         this.when = LocalDateTime.now(ZoneId.systemDefault());
     }
 
@@ -33,8 +37,9 @@ public class Movement implements Serializable {
         return to;
     }
 
-    public LocalDateTime getWhen() {
-        return when;
+    public String getWhen() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return this.when.format(formatter);
     }
 
 }

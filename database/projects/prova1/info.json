@@ -3,9 +3,9 @@
   "members" : [ "usr1", "usr2" ],
   "creationDateTime" : "2021-05-15T00:51:32.8828395",
   "statusLists" : {
-    "DONE" : [ ],
+    "DONE" : [ "card1" ],
     "INPROGRESS" : [ ],
     "TOBEREVISED" : [ ],
-    "TODO" : [ ]
+    "TODO" : [ "card2" ]
   }
 }

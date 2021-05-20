@@ -189,20 +189,32 @@ public class Project implements Serializable {
 
     // method to check if a move is allowed
     private boolean moveIsAllowed(CardStatus from, CardStatus to) {
+        // check if 'from' and 'to' are valid value
+        if(!this.isValid(from) || !this.isValid(to)) return false;
+
         if (from == to) return false;
-        // da _todo posso andare solo in inprogress
+        // from '_todo' I can only go to 'inprogress'
         if (from == CardStatus.TODO && (to != CardStatus.INPROGRESS))
             return false;
-        // da inprogress non posso andare in _todo
+        // from 'inprogress' I can only go to '_todo'
         if (from == CardStatus.INPROGRESS && (to == CardStatus.TODO))
             return false;
-        // da toberevised non posso andare in _todo
+        // from 'toberevised' I can only go to '_todo'
         if (from == CardStatus.TOBEREVISED && (to == CardStatus.TODO))
             return false;
-        // da done non posso andare da nessuna parte
+        // from 'done' I can't go to anywhere
         if (from == CardStatus.DONE)
             return false;
         return true;
+    }
+
+    private boolean isValid(CardStatus test) {
+        for(CardStatus status : CardStatus.values()) {
+            if(status == test) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

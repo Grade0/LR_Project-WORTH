@@ -18,9 +18,9 @@ import java.rmi.server.UnicastRemoteObject;
  * Implementation of the RMI registration service
  */
 public class RMIRegistrationServiceImpl extends UnicastRemoteObject implements RMIRegistrationService {
-    private LocalRegistration registration;
-    private RMICallbackServiceImpl callbackService;
-    private PasswordManager passwordManager;
+    private final LocalRegistration registration;
+    private final RMICallbackServiceImpl callbackService;
+    private final PasswordManager passwordManager;
 
     public RMIRegistrationServiceImpl(LocalRegistration registration, RMICallbackServiceImpl callbackService) throws RemoteException {
         super();

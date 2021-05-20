@@ -115,7 +115,7 @@ public class SelectionTask implements Runnable {
                                 if (messageLength == -1)
                                     messageLength = buffer.getInt();
 
-                                messageReceived.append(StandardCharsets.UTF_8.decode(buffer).toString());
+                                messageReceived.append(StandardCharsets.UTF_8.decode(buffer));
 
                                 buffer.clear();
                             } while (totalReaded < messageLength);
@@ -589,7 +589,7 @@ public class SelectionTask implements Runnable {
 
                                 key.cancel();
                                 client.close();
-                                break;
+                                continue;
                             }
                         }
 
