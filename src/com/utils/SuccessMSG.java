@@ -5,7 +5,7 @@ package com.utils;
  *
  * System success messages
  */
-public class SuccessMSG {
+public abstract class SuccessMSG {
 
     public static final String REGISTRATION_SUCCESSFUL = "Registration successful.";
     public static final String LOGIN_SUCCESSFUL = "Login successful.";

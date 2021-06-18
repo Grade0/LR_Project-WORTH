@@ -3,9 +3,9 @@ package com.client;
 import com.exceptions.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.server.data.*;
-import com.server.service.RMIOperations.RMICallbackService;
-import com.server.service.RMIOperations.RMIRegistrationService;
+import com.data.*;
+import com.server.RMIOperations.RMICallbackService;
+import com.server.RMIOperations.RMIRegistrationService;
 import com.utils.*;
 
 import javax.naming.CommunicationException;
@@ -21,6 +21,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 /**
@@ -60,9 +61,10 @@ public class ClientService {
     public void closeConnection() throws IOException {
         try {
             if (this.isLogged) {
-                this.unregisterForCallback();
                 // shutdown threads chat receivers
                 shutdownThreadPool();
+
+                this.unregisterForCallback();
             }
             // preparing message to send
             RequestMessage requestMessage = new RequestMessage(CommunicationProtocol.EXIT_CMD);
@@ -70,8 +72,12 @@ public class ClientService {
             this.sendTCPRequest(requestMessage);
         } catch (Exception e) {
             // ignore
+        } finally {
+            // unexport remote object
+            // and close communication socket
+            UnicastRemoteObject.unexportObject(callbackNotify, true);
+            this.socket.close();
         }
-        this.socket.close();
     }
 
     /**
@@ -165,8 +171,10 @@ public class ClientService {
                 }
 
                 // request for de-registration to callback service
+                // and unexport remote object
                 try {
                     this.unregisterForCallback();
+                    UnicastRemoteObject.unexportObject(callbackNotify, true);
                 } catch (RemoteException | NotBoundException e) {
                     e.printStackTrace();
                 }
@@ -240,15 +248,7 @@ public class ClientService {
 
                     // initiate the projectChat threads
                     if(projectChats.get(projectName) == null) {
-                        String chatAddressAndPort =  getChatAddressAndPort(projectName);
-
-                        String[] tokens = chatAddressAndPort.split(":");
-                        String chatAddress = tokens[0];
-                        int port = Integer.parseInt(tokens[1]);
-
-                        ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
-                        this.projectChats.put(projectName, newChat);
-                        new Thread(newChat).start();
+                        this.newProjectChat(projectName);
                     }
                 }
 
@@ -299,15 +299,8 @@ public class ClientService {
             if (responseCode == CommunicationProtocol.CHARS_NOT_ALLOWED) throw new CharactersNotAllowedException();
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
 
-            String chatAddressAndPort = this.getChatAddressAndPort(projectName);
-
-            String[] tokens = chatAddressAndPort.split(":");
-            String chatAddress = tokens[0];
-            int port = Integer.parseInt(tokens[1]);
-
-            ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
-            this.projectChats.put(projectName, newChat);
-            new Thread(newChat).start();
+            // initiate the projectChat thread
+            this.newProjectChat(projectName);
 
             System.out.println(SuccessMSG.PROJECT_CREATE_SUCCESS);
         } else {
@@ -662,7 +655,7 @@ public class ClientService {
     }
 
 
-    public String getChatAddressAndPort(String projectName)
+    private void newProjectChat(String projectName)
             throws CommunicationException, UnauthorizedUserException, ProjectNotExistException {
 
         String chatAddressAndPort;
@@ -686,7 +679,13 @@ public class ClientService {
                     new TypeReference<String>() {}
             );
 
-            return chatAddressAndPort;
+            String[] tokens = chatAddressAndPort.split(":");
+            String chatAddress = tokens[0];
+            int port = Integer.parseInt(tokens[1]);
+
+            ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
+            this.projectChats.put(projectName, newChat);
+            new Thread(newChat).start();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -711,10 +710,9 @@ public class ClientService {
     }
 
     /**
-     * Terminate all threads assigned to receive multicast chat messages,
-     * by breaking the endless loop of each task
+     * Terminate all projectChat threads
      */
-    public void shutdownThreadPool() {
+    private void shutdownThreadPool() {
         for(ProjectChatTask task : projectChats.values()) {
             task.terminate();
         }

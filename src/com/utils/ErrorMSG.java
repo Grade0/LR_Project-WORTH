@@ -5,7 +5,7 @@ package com.utils;
  *
  * System error messages
  */
-public class ErrorMSG {
+public abstract class ErrorMSG {
 
     public static final String GENERIC_ERROR = "Sorry, we encountered an error.\n" +
             "If the problem persists, please close and restart the application";

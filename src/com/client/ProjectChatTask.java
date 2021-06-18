@@ -12,6 +12,8 @@ import java.util.LinkedList;
 
 /**
  * @author Davide Chen
+ *
+ * Task to manage the reception of chat messages
  */
 public class ProjectChatTask implements Runnable {
 

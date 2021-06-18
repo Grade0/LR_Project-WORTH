@@ -1,6 +1,6 @@
 package com.client;
 
-import com.server.data.UserStatus;
+import com.data.UserStatus;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -44,5 +44,11 @@ public class RMICallbackNotifyImpl extends UnicastRemoteObject implements RMICal
         }
 
         System.out.println("System ntf: You have been added to a new project: " + projectName);
+    }
+
+    // non ha bisogno della keyword synchronized poiché
+    // è chiamato una singola volta dal server
+    public void notifyCloseClient() {
+        System.err.println("System ntf: Server is offline, please close the application");
     }
 }

@@ -1,6 +1,6 @@
 package com.client;
 
-import com.server.data.UserStatus;
+import com.data.UserStatus;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -27,4 +27,10 @@ public interface RMICallbackNotify extends Remote {
      * @throws RemoteException if there are errors with the rmi service
      */
     void notifyNewProject(String projectName, String chatAddressAndPort) throws RemoteException;
+
+    /**
+     *
+     * @throws RemoteException if there are errors with the rmi service
+     */
+    void notifyCloseClient() throws RemoteException;
 }

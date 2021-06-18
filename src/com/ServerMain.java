@@ -1,12 +1,13 @@
 package com;
 
-import com.server.service.TCPOperations.Database;
-import com.server.service.RMIOperations.RMITask;
-import com.server.service.TCPOperations.SelectionTask;
-import com.server.service.RMIOperations.RMICallbackServiceImpl;
+import com.server.TCPOperations.Database;
+import com.server.RMIOperations.RMITask;
+import com.server.TCPOperations.SelectionTask;
+import com.server.RMIOperations.RMICallbackServiceImpl;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.Scanner;
 
 /**
  * @author Davide Chen
@@ -37,12 +38,42 @@ public class ServerMain {
 
         // run task user registration
         RMITask registrationTask = new RMITask(data, callbackService);
-        new Thread(registrationTask).start();
+        Thread userRegistration = new Thread(registrationTask);
+        userRegistration.start();
 
         // TCP connection management
         SelectionTask selectionTask = new SelectionTask(data, callbackService);
-        new Thread(selectionTask).start();
+        Thread tcpConnection = new Thread(selectionTask);
+        tcpConnection.start();
 
+        try {
+            // dormo per 1s prima di procedere
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String command = "";
+        Scanner in = new Scanner(System.in);
+        do {
+            System.out.println("\nEnter \"exit\" to terminate:");
+            System.out.print("> ");
+            command = in.nextLine();
+        } while(!command.equals("exit"));
+
+        selectionTask.shutdownServer();
+
+        try {
+            //tcpConnection.interrupt();
+            registrationTask.unbindRegistry();
+            userRegistration.join();
+            tcpConnection.join();
+
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Server Shutdown, bye!");
     }
-
 }

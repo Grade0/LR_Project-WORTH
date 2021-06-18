@@ -2,10 +2,9 @@ package com;
 
 import com.client.ClientService;
 import com.exceptions.*;
-import com.server.data.CardStatus;
+import com.data.CardStatus;
 import com.utils.ErrorMSG;
 import com.utils.CommunicationProtocol;
-import com.utils.SuccessMSG;
 
 import javax.naming.CommunicationException;
 import java.io.IOException;
@@ -25,7 +24,7 @@ public class ClientMain {
         avvioMenu();
         System.out.println("Client Shutdown, bye!");
 
-        exit(0);
+        //exit(0);
     }
 
     public static void avvioMenu() {
@@ -36,7 +35,8 @@ public class ClientMain {
 
             while(!finish) {
                 try {
-                    System.out.println("\nInsert next command: ");
+                    System.out.println("\nInsert next command:");
+                    System.out.print("> ");
                     String command = in.nextLine();
                     String[] splittedCommand = command.split(" ");
 
@@ -191,7 +191,7 @@ public class ClientMain {
                 }
 
             }
-
+            in.close();
         } catch (IOException e) {
             System.err.println(ErrorMSG.GENERIC_ERROR);
         }
