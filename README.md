@@ -1,11 +1,57 @@
 # LR_Project-WORTH
 "Network Programming" Class Project - BSc in Computer Science @ University of Pisa
 
-## WORTH: WORk TogetHer
+<!-- PROJECT LOGO -->
+<br />
+<p align="center">
+  <a href="https://github.com/othneildrew/Best-README-Template">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  </a>
 
-End of Course Project A.A. 2020/21 &nbsp; **-** &nbsp; **(Click [[here](/ProgettoWORTH_IT.pdf)] for Italian version)**
+  <h3 align="center">WORTH - WORk TogetHer</h3>
 
-### 1. Problem description
+  <p align="center">
+    End of Course Project A.A. 2020/21
+    <br />
+    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs (in Italian) »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature (in Italian)</a>
+  </p>
+</p>
+
+
+
+<!-- TABLE OF CONTENTS -->
+<details open="open">
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgements">Acknowledgements</a></li>
+  </ol>
+</details>
+
+
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+[![Product Name Screen Shot][product-screenshot]](https://example.com)
+
 In recent years, numerous collaborative applications have been created for content sharing, messaging, videoconferencing, project management, etc. 
 In this educational project, WORTH(WORkTogetHer), we will focus on organizing and managing projects in a collaborative way. 
 The collaboration and project management applications (e.g. [Trello](https://trello.com/), [Asana](https://asana.com/)) help people get organized and coordinate in carrying out common projects.
@@ -18,115 +64,91 @@ A person in the working group may take charge of one activity when it has the po
     
 The project consists in the implementation of WORkTogetHer (WORTH): a tool for managing collaborative projects inspired by some principles of the Kanban methodology.
 
-<br>
+### Built With
 
-### 2. Specification of operations
+* [Java](https://www.java.com/)
+* [JDK12](https://www.oracle.com/it/java/technologies/javase/jdk12-archive-downloads.html)
+* [Jackson](https://github.com/FasterXML/jackson)
 
-Users can access WORTH after registration and login. In WORTH, a **project**, identified by a unique name, consists of a series of "cards", which represent the tasks to be performed to complete it, and provides a series of services. 
-Each project is associated with a list of members, that is users who have permission to change cards and access the services associated with the project (e.g. chat).    
-    
 
-A **card** consists of a name and a text description. The name assigned to the card must be unique within a project.
-Each project has four associated lists that define the flow of work as a passage of cards from one list to the next: TODO, INPROGRESS, TOBEREVISED, DONE.
-Any member of the project can move the card from one list to another, respecting the constraints illustrated in the diagram in FIG. 1.    
-    
-The newly created cards are automatically added to the TODO list. Any member can move one card from one list to another.
-When all the cards are in the DONE list the project can be deleted, from any member participating in the project.    
-    
-Each project is associated with a **group chat**, and all members of that project, if online (after having after logging in), can receive and send messages on the chat.
-On the chat, the system also sends automatically notifications of events related to moving a project card from a list to the other.
 
-<br>
+<!-- GETTING STARTED -->
+## Getting Started
 
-![FIG 1](/Fig1.jpg)
-<p align="center"><b>FIG. 1</b></p>
-<br>
+This is an example of how you may give instructions on setting up your project locally.
+To get a local copy up and running follow these simple example steps.
 
-A **registered** and successful **logged-in** user has permissions for:
-* retrieve the list of all registered users of the service;
-* retrieve the list of all users registered for the service and connected to the service (in online status);
-* create a project;
-* retrieve the list of projects of which it is a member.
+### Prerequisites
 
-A user who has created a project automatically becomes a member of it. Can add other users registered as project members.
-All members of the project have the same rights (the creator himself is a member like the others), in particular:
-* add other registered users as project members;
-* retrieve the list of project members;
-* create card in the project;
-* retrieve the list of cards associated with a project;
-* retrieve the information of a specific project card;
-* recover the “history” of a specific card of the project (see below for details);
-* move any card of the project (respecting the constraints of FIG.1);
-* send a message on the project chat;
-* read messages from the group chat;
-* delete the project.
+You will need Java jdk 12 to compile 
+  1. Windows 
+     1. Use this [guide](https://docs.oracle.com/en/java/javase/12/install/installation-jdk-microsoft-windows-platforms.html#GUID-A7E27B90-A28D-4237-9383-A58B416071CA) by Oracle
+  2. Linux 
+     1. Use this [guide](https://docs.oracle.com/en/java/javase/12/install/installation-jdk-linux-platforms.html#GUID-737A84E4-2EFF-4D38-8E60-3E29D1B884B8) by Oracle
+  3. MacOS
+     1. Use this [guide](https://docs.oracle.com/en/java/javase/12/install/installation-jdk-macos.html#GUID-2FE451B0-9572-4E38-A1A5-568B77B146DE) by Oracle
 
-<br>
+### Installation
 
-The operations offered by the service are specified below. During implementation it is possible add additional parameters as needed.    
-    
-***register(nickUtente, password):*** to insert a new user, the server provides a user registration operation. The server responds with a code that can indicate successful registration, or, if the nickname is already present, or if the password is empty, it returns an error message. As specified below, records are among the information to be persisted.
+1. Clone the repo
+   ```sh
+   git clone https://github.com/PaulMagos/WORTH.git
+   ```
+2. Open directory
+   ```sh
+   cd LR_Project-WORTH
+      ```
+3. Compile
+   1. Windows
+     ```sh
+     javac -d "bin" -cp lib/jackson-annotations-2.9.7.jar;lib/jackson-core-2.9.7.jar;lib/jackson-databind-2.9.7.jar;lib/jackson-datatype-jsr310-2.9.7.jar @paths.txt
+     ```
+4. Run Server
+   1. Windows
+     ```sh
+     java -cp lib/jackson-annotations-2.9.7.jar;lib/jackson-core-2.9.7.jar;lib/jackson-databind-2.9.7.jar;lib/jackson-datatype-jsr310-2.9.7.jar;bin com.ServerMain
+     ```
+5. Run Client
+   1. Windows 
+     ```sh
+     java -cp  lib/jackson-annotations-2.9.7.jar;lib/jackson-core-2.9.7.jar;lib/jackson-databind-2.9.7.jar;lib/jackson-datatype-jsr310-2.9.7.jar;bin com.ClientMain
+     ```
 
-***login(nickUtente, password):*** login of an already registered user to access the service. The server responds with a code that can indicate successful login, or, if the user has already logged-in or the password is incorrect, it returns an error message. 
+<!-- USAGE EXAMPLES -->
+## Usage
 
-***logout(nickUtente):*** logout the user from the service.
+Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
-***listUsers():*** used by a user to view the list of user nicknames registered to the service and their status (online or offline).
+_For more examples, please refer to the [Documentation](https://example.com)_
 
-***listOnlineusers():*** used by a user to view the list of user nicknames registered for the service and online at that time.
 
-***listProjects() :*** operation to retrieve the list of projects of which the user is a member.
 
-***createProject(projectName):*** operation to require the creation of a new project. If the operation is successful, the project is created and has as a member the user who requested the creation.
+<!-- CONTACT -->
+## Contact
+[![LinkedIn][linkedin-shield]](https://www.linkedin.com/in/davide-chen-89aa02145/)
 
-***addMember(projectName, nickUtente):*** operation to add the user *nickUtente* to the project *projectName*. If the user is registered, the addition as a member is performed without asking for the consent of *nickUtente*, if the user is not registered, the operation cannot be completed and the service returns an error message.
 
-***showMembers(projectName):*** operation to retrieve the list of project members.
 
-***showCards(projectName):*** operazione per recuperare la lista di card associate ad un progetto *projectName*.
+<!-- ACKNOWLEDGEMENTS -->
+## Acknowledgements
+* [JetBrains](https://www.jetbrains.com/)
+* [Jackson](https://github.com/FasterXML/jackson)
 
-***showCard(projectName, cardName):*** operation to retrieve the information (name, text description, list in which it is at that time) of the card *cardName* associated with a project *projectName*.
 
-***addCard(projectName, cardName, descrizione):*** operation to request the card named *cardName* to be added to the *projectName* project. The card must be accompanied by a short descriptive text. The card is automatically added to the TODO list.
 
-***moveCard(projectName, cardName, listaPartenza, listaDestinazione):*** operation to request the move of the card named cardName to the project *projectName* from the list *listDeparture* to the list *listDestination*.
 
-***getCardHistory(projectName, cardName):*** operation to request the “history” of the card, that is the sequence of moving events of the card, from creation to the most recent move.
-
-***readChat(projectName)<sup>1</sup>:*** operation to view *projectName* project chat messages.
-
-***cancelProject(projectName):*** a project member asks to delete a project. The operation can be completed successfully only if all the cards are in the DONE list.
-
-<br>
-
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Permission &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;      | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; User &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Project member &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
-| :-------------: | :-------------: | :-------------: |
-| listUsers       | X               |                 |
-| listOnlineusers | X               |                 |
-| listProjects    | X               |                 |
-| createProject   | X               |                 |
-| addMember       |                 | X               |
-| showMembers     |                 | X               |
-| showCards       |                 | X               |
-| showCard        |                 | X               |
-| addCard         |                 | X               |
-| moveCard        |                 | X               |
-| getCardHistory  |                 | X               |
-| readChat        |                 | X               |
-| sendChatMsg     |                 | X               |
-| cancelProject   |                 | X               |
-
-<br>
-<br>
-
-### 3. Implementation specifications.
-Many of the technologies illustrated during the course must be used in the realization of the project. In particular:
-* the registration phase is implemented through **RMI**.   
-* The login phase must be performed as first operation after establishing a **TCP connection** to the server. In response to the login operation, the server also sends the list of registered users and their status (online, offline)<sup>2</sup>. Following login, the client registers to a server notification service to receive updates on the status of registered users (online / offline). The notification service must be implemented with the **RMI callback** mechanism. The client maintains a data structure to keep track of the list of registered users and their status (online / offline), the list is then updated following the receipt of a callback, through which the server sends updates: new registrations, change status of registered users (online / offline). 
-* after successful login, the user interacts, according to the **client-server model** (requests/replies), with the server on the TCP connection created, by sending the commands listed above. All operations are performed on this TCP connection, except the registration (RMI), the operations of retrieving the list of users (listUsers and listOnlineusers) that use the client's local data structure updated via the RMI callback mechanism (as described in previous point) and chat operations.
-* The server can be **multithreaded** or **multiplexing channels via NIO**.
-* The user interacts with WORTH through a client that can use a simple graphical interface, or a command line interface, defining a set of commands, presented in a menu.
-* A separate data structure must be implemented for each project list (i.e. four lists per project).
-* The project chat must be done using **multicast UDP** (a client can send messages directly to other clients). Each project chat has a different **multicast** IP address, chosen by the server when creating the project. The way in which the server communicates to the clients the references to join the chat is chosen by the student (to be motivated in the report).
-* **Implementation of the chat:** in case you decide to implement the graphical interface, it will provide two simple text areas where respectively insert/ receive text messages sent to the chat. In this case, messages are immediately presented to the user as they are received. Instead, if you prefer a command line interaction with WORTH, two commands will be defined to send new messages to the chat/receive all messages received since the last execution of the message display command. In this case, the messages are presented to the user asynchronously, at his request.
-* The server persists system status, in particular: the registration information, the project list (including members, cards and lists status). **The status of the projects must be persistent on the file system** as described below: a directory for each project and a file for each card of the project (the move events related to the card are appended to the file). Chat messages must not be persisted. When the server is restarted this information is used to rebuild the system state.
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
+[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
+[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
+[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
+[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/othneildrew
+[product-screenshot]: images/screenshot.png
