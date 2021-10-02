@@ -1,8 +1,10 @@
 package com.client;
 
 import com.data.UserStatus;
+import com.CommunicationProtocol;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
@@ -14,10 +16,10 @@ import java.util.Map;
  */
 public class RMICallbackNotifyImpl extends UnicastRemoteObject implements RMICallbackNotify {
     private final Map<String, UserStatus> userStatus;
-    private final Map<String, ProjectChatTask> projectChats;
+    private final ProjectChatTask projectChats;
 
     public RMICallbackNotifyImpl(Map<String, UserStatus> userStatus,
-                                 Map<String, ProjectChatTask> projectChats) throws RemoteException {
+                                 ProjectChatTask projectChats) throws RemoteException {
         super();
         this.userStatus = userStatus;
         this.projectChats = projectChats;
@@ -30,25 +32,27 @@ public class RMICallbackNotifyImpl extends UnicastRemoteObject implements RMICal
         this.userStatus.put(username, status);
     }
 
-    public synchronized void notifyNewProject(String projectName, String chatAddressAndPort) throws RemoteException {
-        String[] tokens = chatAddressAndPort.split(":");
-        String chatAddress = tokens[0];
-        int port = Integer.parseInt(tokens[1]);
-
+    @Override
+    public synchronized void notifyNewProject(String projectName, String chatAddress) throws RemoteException {
         try {
-            ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
-            this.projectChats.put(projectName, newChat);
-            new Thread(newChat).start();
+            this.projectChats.joinGroup(projectName, InetAddress.getByName(chatAddress));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        System.out.println("System ntf: You have been added to a new project: " + projectName);
+        System.out.println(CommunicationProtocol.ANSI_YELLOW + "\nSystem ntf: You have been added to a new project: " + projectName);
+        System.out.print(CommunicationProtocol.ANSI_RESET + "> ");
+
     }
 
-    // non ha bisogno della keyword synchronized poiché
-    // è chiamato una singola volta dal server
-    public void notifyCloseClient() {
-        System.err.println("System ntf: Server is offline, please close the application");
+    @Override
+    public synchronized void notifyCloseClient() throws RemoteException {
+        System.out.println(CommunicationProtocol.ANSI_RED + "\nSystem ntf: Server is offline, please close the application");
+        System.out.print(CommunicationProtocol.ANSI_RESET + "> ");
+    }
+
+    @Override
+    public synchronized void leaveMulticastGroup(String projectName) {
+        projectChats.leaveGroup(projectName);
     }
 }

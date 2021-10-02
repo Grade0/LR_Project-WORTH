@@ -2,7 +2,7 @@ package com.server.RMIOperations;
 
 import com.data.UserStatus;
 import com.server.TCPOperations.UserRegistration;
-import com.utils.CommunicationProtocol;
+import com.CommunicationProtocol;
 import com.exceptions.PasswordTooShortException;
 import com.exceptions.CharactersNotAllowedException;
 import com.exceptions.UsernameNotAvailableException;

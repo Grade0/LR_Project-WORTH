@@ -26,16 +26,13 @@ public class CardImpl implements Serializable, Card {
     @JsonCreator
     private CardImpl() {}
 
-
     public String getName() {
         return this.name;
     }
 
-
     public String getDescription() {
         return this.description;
     }
-
 
     public CardStatus getStatus() {
         return this.status;

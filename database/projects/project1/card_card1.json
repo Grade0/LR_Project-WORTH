@@ -1,0 +1,10 @@
+{
+  "name" : "card1",
+  "description" : "descrizione ",
+  "status" : "INPROGRESS",
+  "movements" : [ {
+    "from" : "TODO",
+    "to" : "INPROGRESS",
+    "when" : "2021-07-02T15:26:25.9334894"
+  } ]
+}

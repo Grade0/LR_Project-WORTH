@@ -19,7 +19,7 @@ public abstract class ErrorMSG {
             "The entered password is too short.\n" +
                     "Insert a password with at least 8 characters";
 
-    public static final String PASSWORD_WRONG = "Entered password is wrong";
+    public static final String PASSWORD_WRONG = "Sorry, password entered is wrong, please try again";
 
     public static final String CHARACTERS_NOT_ALLOWED =
             "We're sorry, but this field contains some not allowed characters.\n" +

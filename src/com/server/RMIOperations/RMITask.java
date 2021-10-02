@@ -1,7 +1,7 @@
 package com.server.RMIOperations;
 
 import com.server.TCPOperations.UserRegistration;
-import com.utils.CommunicationProtocol;
+import com.CommunicationProtocol;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -35,7 +35,7 @@ public class RMITask implements Runnable {
 
             // publishing the callback stub in the registry
             registry.bind(CommunicationProtocol.CALLBACK_SERVICE_NAME, callbackService);
-            System.out.println("Callback service is now available");
+            System.out.println(CommunicationProtocol.ANSI_GREEN + "Callback service is now available");
 
             // Initialization of the RMIRegistrationService
             registrationService = new RMIRegistrationServiceImpl(registration, callbackService);

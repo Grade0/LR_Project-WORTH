@@ -1,5 +1,6 @@
 package com.server.TCPOperations;
 
+import com.CommunicationProtocol;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.RMIOperations.RMICallbackServiceImpl;
@@ -15,10 +16,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Davide Chen
@@ -26,7 +24,7 @@ import java.util.Set;
  * Task for managing the client's requests using a NIO selector
  */
 public class SelectionTask implements Runnable {
-    private static final int ALLOCATION_SIZE = 1024;        // size (in bytes) per allocation of a ByteBuffer
+    private static final int ALLOCATION_SIZE = 2048;        // size (in bytes) per allocation of a ByteBuffer
     private final TCPOperations data;                       // application data
     private final ObjectMapper mapper;                      // mapper used for Jackson serialization / deserialization
     private final RMICallbackServiceImpl callbackService;   // callback service
@@ -154,6 +152,7 @@ public class SelectionTask implements Runnable {
                         int responseCode = CommunicationProtocol.UNKNOWN;
                         // preparing the response body
                         String responseBody = null;
+                        String responseBody2 = null;
 
                         // depending on the command, there will be different behaviors
                         switch (command) {
@@ -171,7 +170,17 @@ public class SelectionTask implements Runnable {
 
                                     // response body: list of users and their status
                                     Map<String, UserStatus> userStatus = data.getUserStatus();
+                                    // response body 2: list of his/her projects
+                                    Map<String, InetAddress> chatsAddresses = new Hashtable<>();
+                                    for(Project project : data.listProjects(username)) {
+                                        String projectName = project.getName();
+                                        String chatAddress = data.getProjectChatAddress(projectName);
+                                        InetAddress group = InetAddress.getByName(chatAddress);
+                                        chatsAddresses.put(projectName, group);
+                                    }
+
                                     responseBody = this.mapper.writeValueAsString(userStatus);
+                                    responseBody2 = this.mapper.writeValueAsString(chatsAddresses);
 
                                     // notifies users that the user 'username' is now online
                                     callbackService.notifyUsers(username, UserStatus.ONLINE);
@@ -184,6 +193,8 @@ public class SelectionTask implements Runnable {
                                     responseCode = CommunicationProtocol.LOGIN_ALREADY_LOGGED;
                                 } catch (WrongPasswordException e) {
                                     responseCode = CommunicationProtocol.LOGIN_WRONGPWD;
+                                } catch (ProjectNotExistException e) {
+                                    //impossible to happen
                                 }
                                 break;
                             }
@@ -242,12 +253,17 @@ public class SelectionTask implements Runnable {
 
                                 try {
                                     data.createProject(projectName, username);
+
+                                    String chatAddress = data.getProjectChatAddress(projectName);
+                                    responseBody = this.mapper.writeValueAsString(chatAddress);
                                 } catch (ProjectAlreadyExistException e) {
                                     responseCode = CommunicationProtocol.CREATEPROJECT_ALREADYEXISTS;
                                 } catch (NoSuchAddressException e) {
                                     responseCode = CommunicationProtocol.CREATEPROJECT_NOMOREADDRESSES;
                                 } catch (NoSuchPortException e) {
                                     responseCode = CommunicationProtocol.CREATEPROJECT_NOMOREPORTS;
+                                } catch (ProjectNotExistException e) {
+                                    //impossible to happen
                                 }
                                 break;
                             }
@@ -270,9 +286,9 @@ public class SelectionTask implements Runnable {
                                 try {
                                     data.addMember(projectName, userToAdd, username);
 
-                                    String chatAddressAndPort = data.readChat(projectName, userToAdd);
+                                    String chatAddress = data.getProjectChatAddress(projectName);
                                     // notifies user 'username' that he/she is now a member of the project 'projectName'
-                                    callbackService.notifyProject(userToAdd, projectName, chatAddressAndPort);
+                                    callbackService.notifyProject(userToAdd, projectName, chatAddress);
                                 } catch (ProjectNotExistException e) {
                                     responseCode = CommunicationProtocol.PROJECT_NOT_EXISTS;
                                 } catch (UnauthorizedUserException e) {
@@ -434,7 +450,6 @@ public class SelectionTask implements Runnable {
                                     // the server notifies all users in the project chat
                                     try {
                                         String chatAddress = data.getProjectChatAddress(projectName);
-                                        int port = data.getProjectChatPort(projectName);
                                         InetAddress group = InetAddress.getByName(chatAddress);
                                         DatagramSocket socket = new DatagramSocket();
 
@@ -442,6 +457,7 @@ public class SelectionTask implements Runnable {
                                                 CommunicationProtocol.SYSTEM_NAME,
                                                 username + " moved card '" + cardName +
                                                         "' from " + from.name() + " to " + to.name(),
+                                                projectName,
                                                 true
                                         );
                                         byte[] byteMessage = this.mapper.writeValueAsBytes(udpMessage);
@@ -449,7 +465,7 @@ public class SelectionTask implements Runnable {
                                                 byteMessage,
                                                 byteMessage.length,
                                                 group,
-                                                port
+                                                CommunicationProtocol.MULTICAST_GROUP_PORT
                                         );
                                         socket.send(packet);
 
@@ -497,33 +513,8 @@ public class SelectionTask implements Runnable {
                                 }
                                 break;
                             }
-                            case CommunicationProtocol.READ_CHAT_CMD: {
-                                // check number of parameters
-                                if (arguments.size() != 1) {
-                                    responseCode = CommunicationProtocol.COMMUNICATION_ERROR;
-                                    break;
-                                }
 
-                                // get the user who made the request
-                                String username = attachment.getUsername();
-                                if(username == null) {
-                                    responseCode = CommunicationProtocol.USER_NOT_LOGGED;
-                                    break;
-                                }
-
-                                String projectName = arguments.get(0);
-
-                                try {
-                                    String chatAddressAndPort = data.readChat(projectName, username);
-                                    responseBody = this.mapper.writeValueAsString(chatAddressAndPort);
-                                } catch (ProjectNotExistException e) {
-                                    responseCode = CommunicationProtocol.PROJECT_NOT_EXISTS;
-                                } catch (UnauthorizedUserException e) {
-                                    responseCode = CommunicationProtocol.UNAUTHORIZED;
-                                }
-                                break;
-                            }
-                            case CommunicationProtocol.CANCELPROJECT_CMD: {
+                            case CommunicationProtocol.CANCEL_PROJECT_CMD: {
                                 // check number of parameters
                                 if (arguments.size() != 1) {
                                     responseCode = CommunicationProtocol.COMMUNICATION_ERROR;
@@ -541,9 +532,11 @@ public class SelectionTask implements Runnable {
                                     // the server notifies all users in the project chat
                                     // that the project has been deleted
                                     String chatAddress = data.getProjectChatAddress(projectName);
-                                    int port = data.getProjectChatPort(projectName);
                                     InetAddress group = InetAddress.getByName(chatAddress);
                                     DatagramSocket socket = new DatagramSocket();
+
+                                    // retrieval of the list of members to terminate the project chat
+                                    List<String> members = data.showMembers(projectName, username);
 
                                     // delete project
                                     data.cancelProject(projectName, username);
@@ -551,6 +544,7 @@ public class SelectionTask implements Runnable {
                                     UDPMessage udpMessage = new UDPMessage(
                                             CommunicationProtocol.SYSTEM_NAME,
                                             CommunicationProtocol.UDP_TERMINATE_MSG,
+                                            projectName,
                                             true
                                     );
 
@@ -559,10 +553,13 @@ public class SelectionTask implements Runnable {
                                             byteMessage,
                                             byteMessage.length,
                                             group,
-                                            port
+                                            CommunicationProtocol.MULTICAST_GROUP_PORT
                                     );
 
                                     socket.send(packet);
+
+                                    // terminate
+                                    callbackService.terminateChat(projectName, members);
 
                                 } catch (ProjectNotExistException e) {
                                     responseCode = CommunicationProtocol.PROJECT_NOT_EXISTS;
@@ -603,7 +600,8 @@ public class SelectionTask implements Runnable {
                         // preparing reply message
                         ResponseMessage response = new ResponseMessage(
                                 responseCode,
-                                responseBody
+                                responseBody,
+                                responseBody2
                         );
 
                         // serialize it and put it in the buffer

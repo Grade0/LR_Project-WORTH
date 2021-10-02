@@ -16,6 +16,7 @@ public class ServerMain {
 
     public static void main (String[] args) {
 
+        System.out.println("WORTH (WORkTogetHer) Server");
         // Upload of all persistent data
         Database data;
         try {
@@ -47,7 +48,7 @@ public class ServerMain {
         tcpConnection.start();
 
         try {
-            // dormo per 1s prima di procedere
+            // sleep for 1s before proceeding
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -56,7 +57,7 @@ public class ServerMain {
         String command = "";
         Scanner in = new Scanner(System.in);
         do {
-            System.out.println("\nEnter \"exit\" to terminate:");
+            System.out.println(CommunicationProtocol.ANSI_RESET + "\nEnter \"exit\" to terminate:");
             System.out.print("> ");
             command = in.nextLine();
         } while(!command.equals("exit"));
@@ -64,12 +65,9 @@ public class ServerMain {
         selectionTask.shutdownServer();
 
         try {
-            //tcpConnection.interrupt();
             registrationTask.unbindRegistry();
             userRegistration.join();
             tcpConnection.join();
-
-
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

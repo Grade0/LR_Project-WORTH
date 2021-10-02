@@ -1,12 +1,12 @@
 package com.server.TCPOperations;
 
+import com.CommunicationProtocol;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.data.*;
 import com.exceptions.*;
 import com.utils.MulticastAddressManager;
 import com.utils.PasswordManager;
-import com.utils.PortManager;
 import com.utils.*;
 
 import java.io.File;
@@ -17,6 +17,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +41,7 @@ public class Database implements UserRegistration, TCPOperations {
 
     public Database() throws IOException {
         this.users = new ConcurrentHashMap<>();
-        this.projects = new ConcurrentHashMap<>();
+        this.projects = new HashMap<>();
         this.userStatus = new ConcurrentHashMap<>();
 
         // Jackson object
@@ -139,9 +140,9 @@ public class Database implements UserRegistration, TCPOperations {
             }
         }
 
-        System.out.format("%d users retrieved\n", numOfUsers);
+        System.out.format(CommunicationProtocol.ANSI_YELLOW + "%d users retrieved\n", numOfUsers);
         System.out.format("%d projects retrieved\n", numOfProjects);
-        System.out.println("Server data initialization - successful");
+        System.out.println(CommunicationProtocol.ANSI_GREEN + "Server data initialization - successful");
     }
 
     @Override
@@ -299,16 +300,6 @@ public class Database implements UserRegistration, TCPOperations {
     }
 
     @Override
-    public String readChat(String projectName, String whoRequest) throws ProjectNotExistException, UnauthorizedUserException {
-        Project project;
-        if ((project = this.projects.get(projectName)) == null)
-            throw new ProjectNotExistException();
-        if (!project.getMembers().contains(whoRequest))
-            throw new UnauthorizedUserException();
-        return project.getChatAddress() + ":" + project.getChatPort();
-    }
-
-    @Override
     public void cancelProject(String projectName, String whoRequest) throws ProjectNotExistException, UnauthorizedUserException, ProjectNotCancelableException {
         Project project = this.projects.get(projectName);
         if (project == null)
@@ -319,8 +310,6 @@ public class Database implements UserRegistration, TCPOperations {
             throw new ProjectNotCancelableException();
         // free the multicast address
         MulticastAddressManager.freeAddress(project.getChatAddress());
-        // free the port
-        PortManager.freePort(project.getChatPort());
         // remove the project
         this.projects.remove(projectName);
 
@@ -350,17 +339,6 @@ public class Database implements UserRegistration, TCPOperations {
             throw new ProjectNotExistException();
         return project.getChatAddress();
     }
-
-    @Override
-    public int getProjectChatPort(String projectName) throws ProjectNotExistException {
-        Project project;
-        project = this.projects.get(projectName);
-        if (project == null)
-            throw new ProjectNotExistException();
-        return project.getChatPort();
-    }
-
-
 
     /**
      * Saving the user to storage by serializing it
@@ -477,7 +455,6 @@ public class Database implements UserRegistration, TCPOperations {
 
         project.initCardList(projectCardList);
         project.initChatAddress(MulticastAddressManager.getAddress());
-        project.initChatPort(PortManager.getPort());
 
         this.projects.put(project.getName(), project);
     }

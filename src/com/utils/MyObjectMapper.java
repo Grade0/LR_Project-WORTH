@@ -21,7 +21,7 @@ public class MyObjectMapper extends ObjectMapper {
 
         // date formatting
         this.registerModule(new JavaTimeModule());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         this.setDateFormat(dateFormat);
 
         // don't print date as timestamp

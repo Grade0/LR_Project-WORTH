@@ -2,13 +2,14 @@ package com.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.utils.CommunicationProtocol;
+import com.CommunicationProtocol;
 import com.utils.UDPMessage;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Davide Chen
@@ -18,18 +19,15 @@ import java.util.LinkedList;
 public class ProjectChatTask implements Runnable {
 
     private final MulticastSocket multicastSocket;
-    private final InetAddress chatAddress;
-    private final int port;
-    private final LinkedList<UDPMessage> messages;
-    volatile boolean finish = false;
-    volatile boolean lastMessageIsRead = false;
+    private final Map<String, InetAddress> chatAddresses;           // Collection.sychronizedMap
+    private final Map<String, LinkedList<UDPMessage>> messages;     // ConcurrentHashMap
+    volatile boolean finish = false;                                // flag for the infinity loop,
+                                                                    // it will set to true when the user logs out
 
-
-    public ProjectChatTask(String address, int port) throws IOException {
-        this.multicastSocket = new MulticastSocket(port);
-        this.chatAddress = InetAddress.getByName(address);
-        this.port = port;
-        this.messages = new LinkedList<>();
+    public ProjectChatTask(Map<String, InetAddress> addresses) throws IOException {
+        this.multicastSocket = new MulticastSocket(CommunicationProtocol.MULTICAST_GROUP_PORT);
+        this.chatAddresses = addresses;
+        this.messages = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -38,8 +36,11 @@ public class ProjectChatTask implements Runnable {
         byte[] buffer;
 
         try {
-            buffer = new byte[1024];
-            multicastSocket.joinGroup(this.chatAddress);
+            for(Map.Entry<String, InetAddress> chat : this.chatAddresses.entrySet()) {
+                this.multicastSocket.joinGroup(chat.getValue());
+                this.messages.put(chat.getKey(), new LinkedList<>());
+            }
+            buffer = new byte[2024];
             packet = new DatagramPacket(buffer, buffer.length);
 
             while (!finish) {
@@ -58,11 +59,7 @@ public class ProjectChatTask implements Runnable {
                             new TypeReference<UDPMessage>() {
                             });
 
-                    if (this.projectCancelled(udpMessage)) {
-                        finish = true;
-                    }
-
-                    messages.add(udpMessage);
+                    messages.get(udpMessage.getProjectName()).add(udpMessage);
                 } catch (SocketTimeoutException e) {
                     //ignore
                 }
@@ -76,40 +73,60 @@ public class ProjectChatTask implements Runnable {
     }
 
     public MulticastSocket getMulticastSocket() {
-        return multicastSocket;
+        return this.multicastSocket;
     }
 
-    public InetAddress getChatAddress() {
-        return chatAddress;
+    public InetAddress getChatAddress(String projectName) {
+        return this.chatAddresses.get(projectName);
     }
 
-    public int getPort() {
-        return port;
+    public LinkedList<UDPMessage> getMessages(String projectName) {
+        return this.messages.get(projectName);
     }
 
-    public LinkedList<UDPMessage> getMessages() {
-        return this.messages;
+    public void joinGroup(String projectName, InetAddress address) {
+        try {
+            this.chatAddresses.put(projectName, address);
+            this.messages.put(projectName, new LinkedList<>());
+            this.multicastSocket.joinGroup(address);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public boolean projectCancelled(UDPMessage message) {
-        return message.isFromSystem() && message.getMessage().equals(CommunicationProtocol.UDP_TERMINATE_MSG);
+    public void leaveGroup(String projectName) {
+        try {
+            InetAddress address = this.chatAddresses.remove(projectName);
+            multicastSocket.leaveGroup(address);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void terminate() {
+        // interrupt the infinity loop
         this.finish = true;
+        try {
+            for(InetAddress chatAddress : this.chatAddresses.values()) {
+                // leave all the multicast group
+                multicastSocket.leaveGroup(chatAddress);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public boolean isTerminated() {
-
-        if(!finish) return false;
-
-        //if the project is cancelled
-        //and the latest messages have not yet been read
-        if(finish && !lastMessageIsRead) {
-            lastMessageIsRead = true;
-            return false;
-        }
-
-        return true;
+    public boolean isTerminated(String projectName) {
+        // the project is not cancelled
+        if(chatAddresses.containsKey(projectName)) return false;
+        // messages.get() will not return null,
+        // otherwise 'isTerminated' would not have been called
+        else if (messages.get(projectName).size() == 0) {
+                // project is cancelled and last messages already read
+                messages.remove(projectName);
+                return true;
+            }
+        // last messages not read yet
+        return false;
     }
 }

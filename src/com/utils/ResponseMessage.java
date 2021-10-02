@@ -12,10 +12,12 @@ import java.io.Serializable;
 public class ResponseMessage implements Serializable {
     private int statusCode;         // status code resulting from the operation
     private String responseBody;    // message body (can be null)
+    private String responseBody2;   // second message body used only for LOGIN_CMD
 
-    public ResponseMessage(int statusCode, String responseBody) {
+    public ResponseMessage(int statusCode, String responseBody, String responseBody2) {
         this.statusCode = statusCode;
         this.responseBody = responseBody;
+        this.responseBody2 = responseBody2;
     }
 
     @JsonCreator
@@ -27,5 +29,9 @@ public class ResponseMessage implements Serializable {
 
     public String getResponseBody() {
         return this.responseBody;
+    }
+
+    public String getResponseBody2() {
+        return responseBody2;
     }
 }

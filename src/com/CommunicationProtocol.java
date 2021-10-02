@@ -1,4 +1,4 @@
-package com.utils;
+package com;
 
 import java.time.ZoneId;
 
@@ -17,8 +17,11 @@ public abstract class CommunicationProtocol {
     // Server port for TCP requests
     public static final int SERVER_PORT = 2500;
     public static final int REGISTRY_PORT = 6789;
-    // 16 bit -> 2^16 = 65536
-    public static final int UDP_MSG_MAX_LEN = 65536;
+    public static final int MULTICAST_GROUP_PORT = 30000;
+    // is the size of the buffer
+    // thus I don't have to worry if the message
+    // is longer than the buffer
+    public static final int UDP_MSG_MAX_LEN = 2048;
     // system name (mainly used as the author of UDP messages)
     public final static String SYSTEM_NAME = "System";
     // message to be sent to the server to close the chat service
@@ -37,24 +40,24 @@ public abstract class CommunicationProtocol {
     /**
      * RESPONSE CODE
      */
-    public static final int OP_SUCCESS = 0;
-    public static final int UNKNOWN = -1; //generic error
-    public static final int COMMUNICATION_ERROR = 100;
-    public static final int USER_NOT_EXISTS = 101;
-    public static final int PROJECT_NOT_EXISTS = 102;
-    public static final int CARD_NOT_EXISTS = 103;
-    public static final int UNAUTHORIZED = 104;
-    public static final int CHARS_NOT_ALLOWED = 105;
-    public static final int LOGIN_WRONGPWD = 106;
-    public static final int LOGIN_ALREADY_LOGGED = 107;
-    public static final int CREATEPROJECT_ALREADYEXISTS = 108;
-    public static final int CREATEPROJECT_NOMOREADDRESSES = 109;
-    public static final int CREATEPROJECT_NOMOREPORTS = 110;
-    public static final int ADD_CARD_ALREADYEXISTS = 111;
-    public static final int ADD_MEMBER_ALREADYPRESENT = 112;
-    public static final int MOVE_CARD_NOT_ALLOWED = 113;
-    public static final int CANCELPROJECT_NOTCANCELABLE = 114;
-    public static final int USER_NOT_LOGGED = 115;
+    public static final int OP_SUCCESS = 200;
+    public static final int UNKNOWN = 400; //generic error
+    public static final int COMMUNICATION_ERROR = 401;
+    public static final int USER_NOT_EXISTS = 402;
+    public static final int PROJECT_NOT_EXISTS = 403;
+    public static final int CARD_NOT_EXISTS = 404;
+    public static final int UNAUTHORIZED = 405;
+    public static final int CHARS_NOT_ALLOWED = 406;
+    public static final int LOGIN_WRONGPWD = 407;
+    public static final int LOGIN_ALREADY_LOGGED = 408;
+    public static final int CREATEPROJECT_ALREADYEXISTS = 409;
+    public static final int CREATEPROJECT_NOMOREADDRESSES = 410;
+    public static final int CREATEPROJECT_NOMOREPORTS = 411;
+    public static final int ADD_CARD_ALREADYEXISTS = 412;
+    public static final int ADD_MEMBER_ALREADYPRESENT = 413;
+    public static final int MOVE_CARD_NOT_ALLOWED = 414;
+    public static final int CANCELPROJECT_NOTCANCELABLE = 415;
+    public static final int USER_NOT_LOGGED = 416;
 
     /**
      * COMMANDS
@@ -75,6 +78,15 @@ public abstract class CommunicationProtocol {
     public static final String CARD_HISTORY_CMD = "get_card_history";
     public static final String READ_CHAT_CMD = "read_chat";
     public static final String SEND_CHAT_CMD = "send_chat";
-    public static final String CANCELPROJECT_CMD = "cancel_project";
+    public static final String CANCEL_PROJECT_CMD = "cancel_project";
     public static final String EXIT_CMD = "exit";
+
+    /**
+     * TEXT COLOR
+     */
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";        // for error messages
+    public static final String ANSI_GREEN = "\u001B[32m";      // for the success messages
+    public static final String ANSI_YELLOW = "\u001B[33m";     // for server response and system messages
+    public static final String ANSI_BLUE = "\u001B[34m";       // for my messages in the chat
 }

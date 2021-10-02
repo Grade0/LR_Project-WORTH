@@ -1,0 +1,11 @@
+{
+  "name" : "project1",
+  "members" : [ "usr1", "usr2" ],
+  "creationDateTime" : "2021-07-02T15:24:17.014146",
+  "statusLists" : {
+    "TODO" : [ ],
+    "DONE" : [ ],
+    "INPROGRESS" : [ "card1" ],
+    "TOBEREVISED" : [ ]
+  }
+}

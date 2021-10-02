@@ -172,20 +172,6 @@ public interface TCPOperations {
             throws ProjectNotExistException, UnauthorizedUserException, CardNotExistException;
 
     /**
-     * Get the multicast address of the project chat
-     *
-     * @param projectName name of the project
-     * @param whoRequest user who requested the operation
-     *
-     * @throws ProjectNotExistException if the project doesn't exist
-     * @throws UnauthorizedUserException if the user does not have the necessary permissions
-     *
-     * @return address and port of the project chat
-     */
-    String readChat(String projectName, String whoRequest)
-            throws ProjectNotExistException, UnauthorizedUserException;
-
-    /**
      * Delete the project
      *
      * @param projectName name of the project
@@ -216,16 +202,4 @@ public interface TCPOperations {
      * @return multicast address of the project
      */
     String getProjectChatAddress(String projectName) throws ProjectNotExistException;
-
-    /**
-     * Get the port of the project projectName
-     *
-     * @param projectName name of the project
-     *
-     * @return port of the project
-     *
-     * @throws ProjectNotExistException if the project doesn't exist
-     *
-     */
-    int getProjectChatPort(String projectName) throws ProjectNotExistException;
 }

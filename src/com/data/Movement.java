@@ -36,9 +36,7 @@ public class Movement implements Serializable {
         return to;
     }
 
-    public String getWhen() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return this.when.format(formatter);
+    public LocalDateTime getWhen() {
+        return this.when;
     }
-
 }

@@ -3,9 +3,8 @@ package com.data;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.exceptions.*;
-import com.utils.CommunicationProtocol;
+import com.CommunicationProtocol;
 import com.utils.MulticastAddressManager;
-import com.utils.PortManager;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -32,8 +31,6 @@ public class Project implements Serializable {
     //when the project is retrieved by the server, it is assigned a new address
     @JsonIgnore
     private String chatAddress;
-    @JsonIgnore
-    private int chatPort;
 
     // each card of the project is serialized in a separate file
     @JsonIgnore
@@ -48,7 +45,6 @@ public class Project implements Serializable {
         this.members.add(creator);
         this.creationDateTime = LocalDateTime.now(CommunicationProtocol.ZONE_ID);
         this.chatAddress = MulticastAddressManager.getAddress();
-        this.chatPort = PortManager.getPort();
         this.statusLists = new HashMap<>();
         CardStatus[] values = CardStatus.values();
         for (CardStatus status : values) {
@@ -67,16 +63,6 @@ public class Project implements Serializable {
         if (this.chatAddress != null)
             throw new AlreadyInitialedException();
         this.chatAddress = address;
-    }
-
-    /**
-     * this method is called by the server to initialize
-     * the multicast port of the project during the deserialization phase
-     * it can't be called by anyone else
-     *
-     */
-    public void initChatPort(int port) {
-        this.chatPort = port;
     }
 
     /**
@@ -105,10 +91,6 @@ public class Project implements Serializable {
 
     public String getChatAddress() {
         return this.chatAddress;
-    }
-
-    public int getChatPort() {
-        return this.chatPort;
     }
 
     public Map<CardStatus, List<String>> getStatusLists() {

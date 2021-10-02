@@ -6,9 +6,9 @@ import com.client.RMICallbackNotify;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Davide Chen
@@ -29,19 +29,19 @@ public class RMICallbackServiceImpl extends UnicastRemoteObject implements RMICa
 
     public RMICallbackServiceImpl() throws RemoteException {
         super();
-        // ConcurrentHashMap is preferred because is thread-safe (
-        // and doesn't allow any null key or value
-        clients = new ConcurrentHashMap<>();
+        // HashTable is preffered here because
+        // it doesn't allow any null key or value
+        clients = new Hashtable<>();
         toDelete = new ArrayList<>();
     }
 
     @Override
-    public void registerForCallback(String username, RMICallbackNotify client) throws RemoteException {
+    public synchronized void registerForCallback(String username, RMICallbackNotify client) throws RemoteException {
         clients.put(username, client);
     }
 
     @Override
-    public void unregisterForCallback(String username) throws RemoteException {
+    public synchronized void unregisterForCallback(String username) throws RemoteException {
         clients.remove(username);
     }
 
@@ -63,28 +63,44 @@ public class RMICallbackServiceImpl extends UnicastRemoteObject implements RMICa
         }
     }
 
-    public synchronized void notifyProject(String username, String projectName, String chatAddressAndPort) {
+    public synchronized void notifyProject(String username, String projectName, String chatAddress) {
         RMICallbackNotify client = clients.get(username);
 
         // client == null when the user is offline
         // thus I don't have to notify anything
         if(client != null) {
             try {
-                client.notifyNewProject(projectName, chatAddressAndPort);
+                client.notifyNewProject(projectName, chatAddress);
             } catch (RemoteException e) {
                 toDelete.add(username);
             }
         }
     }
 
-    //non ha bisogno della keyword synchronized poiché viene chiamato da
-    // una singola parte del codice ed una sola singola volta
-    public void notifyServerDown() {
+
+    public synchronized void notifyServerDown() {
         for (RMICallbackNotify client : clients.values()) {
             try {
                 client.notifyCloseClient();
             } catch (RemoteException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+
+    public synchronized void terminateChat(String projectName, List<String> members) {
+        for(String username : members) {
+            RMICallbackNotify client = clients.get(username);
+
+            // client == null when the user is offline
+            // thus I don't have to notify anything
+            if(client != null) {
+                try {
+                    client.leaveMulticastGroup(projectName);
+                } catch (RemoteException e) {
+                    toDelete.add(username);
+                }
             }
         }
     }

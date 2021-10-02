@@ -33,4 +33,12 @@ public interface RMICallbackNotify extends Remote {
      * @throws RemoteException if there are errors with the rmi service
      */
     void notifyCloseClient() throws RemoteException;
+
+    /**
+     *
+     * @param projectName to which it refers
+     *
+     * @throws RemoteException if there are errors with the rmi service
+     */
+    void leaveMulticastGroup(String projectName) throws RemoteException;
 }

@@ -1,5 +1,6 @@
 package com.client;
 
+import com.CommunicationProtocol;
 import com.exceptions.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +23,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -30,14 +32,14 @@ import java.util.*;
  * All operations provided by the service
  */
 public class ClientService {
-    private static final int ALLOCATION_SIZE = 512*512;     // buffer allocation space
+    private static final int ALLOCATION_SIZE = 2048;     // buffer allocation space
     private boolean isLogged;                               // user online status flag
     private String username;                                // to keep track of the user's username
     private final SocketChannel socket;                     // socket for connection establishment
     private final ObjectMapper mapper;                      // mapper for serialization / deserialization
     private Map<String, UserStatus> userStatus;             // users status list
     private RMICallbackNotify callbackNotify;               // callback management
-    private Map<String, ProjectChatTask> projectChats;      // projects chats manager
+    private ProjectChatTask projectChats;                   // projects chats manager
 
     // set up the client's connection to the server
     public ClientService() throws IOException {
@@ -51,18 +53,19 @@ public class ClientService {
 
         this.mapper = new MyObjectMapper();
 
-        this.userStatus = null; // it will be initialized during login
-        this.callbackNotify = null; // it will be initialized during login
+        // the following data will be initialized/updated during the login
+        this.userStatus = null;
+        this.callbackNotify = null;
+        this.projectChats = null;
         this.isLogged = false;
         this.username = "";
-        this.projectChats = new HashMap<>();
     }
 
     public void closeConnection() throws IOException {
         try {
             if (this.isLogged) {
-                // shutdown threads chat receivers
-                shutdownThreadPool();
+                // terminate the chat task
+                this.projectChats.terminate();
 
                 this.unregisterForCallback();
             }
@@ -93,7 +96,7 @@ public class ClientService {
         // call to the RMI service
         String result = regService.register(username, password);
 
-        System.out.println(result);
+        System.out.println(CommunicationProtocol.ANSI_GREEN + result);
     }
 
     /**
@@ -123,7 +126,7 @@ public class ClientService {
             this.username = username;
             this.isLogged = true;
 
-            System.out.println(SuccessMSG.LOGIN_SUCCESSFUL + "\n");
+            System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.LOGIN_SUCCESSFUL + "\n");
 
             try {
                 // saving server reply
@@ -132,14 +135,28 @@ public class ClientService {
                         new TypeReference<Map<String, UserStatus>>() {
                         }
                 );
-                // it must remain synchronized
+
+                Map<String, InetAddress> chatAddresses = this.mapper.readValue(
+                        response.getResponseBody2(),
+                        new TypeReference<Hashtable<String, InetAddress>>() {
+
+                        }
+                );
+
+                // they must remain synchronized
                 this.userStatus = Collections.synchronizedMap(this.userStatus);
+                chatAddresses = Collections.synchronizedMap(chatAddresses);
+
+                // initiate the projectChat thread
+                this.projectChats = new ProjectChatTask(chatAddresses);
+                new Thread(projectChats).start();
 
                 // instantiate callback
                 this.callbackNotify = new RMICallbackNotifyImpl(this.userStatus, this.projectChats);
 
                 // callback registration request
                 this.registerForCallback();
+
             } catch (IOException | NotBoundException e) {
                 e.printStackTrace();
             }
@@ -147,11 +164,8 @@ public class ClientService {
             // retrieve users list
             this.listUsers();
 
-            // retrieve projects list that I'm part of
-            this.listProjects();
-
         } else {
-            System.err.println(ErrorMSG.SOMEONE_ALREADY_LOGGED + this.username);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.SOMEONE_ALREADY_LOGGED + this.username);
         }
     }
 
@@ -183,44 +197,40 @@ public class ClientService {
                 this.username = "";
                 this.isLogged = false;
 
+                // terminate the chat task
+                this.projectChats.terminate();
 
-                // shutdown threads chat tasks
-                shutdownThreadPool();
-
-                // invalidate list of chat threads
-                this.projectChats = new HashMap<>();
-
-                System.out.println(SuccessMSG.LOGOUT_SUCCESSFUL);
+                System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.LOGOUT_SUCCESSFUL);
             } else {
-                System.err.println(ErrorMSG.NOT_LOGGED_AS + username);
+                System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED_AS + username);
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
     public void listUsers() {
         if(isLogged) {
-            System.out.println("User list with their status:");
+            System.out.println(CommunicationProtocol.ANSI_YELLOW + "User list with their status:");
 
             for (Map.Entry<String, UserStatus> entry : userStatus.entrySet()) {
                 System.out.println("- " + entry.getKey() + ": " + entry.getValue());
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
     public void listOnlineUsers() {
         if(isLogged) {
-            System.out.println("Online user list:");
+            System.out.println(CommunicationProtocol.ANSI_RESET + "Online user list:");
 
             for (Map.Entry<String, UserStatus> entry : userStatus.entrySet()) {
                 if (entry.getValue() == UserStatus.ONLINE)
                     System.out.println("- " + entry.getKey() + ": " + entry.getValue());
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -234,6 +244,7 @@ public class ClientService {
 
             if (response.getStatusCode() == CommunicationProtocol.USER_NOT_EXISTS) throw new UserNotExistException();
 
+
             try {
                 List<Project> projectList = this.mapper.readValue(
                         response.getResponseBody(),
@@ -241,41 +252,19 @@ public class ClientService {
                         }
                 );
 
-                List<String> projectNames = new ArrayList<>();
-                for (Project project : projectList) {
-                    String projectName = project.getName();
-                    projectNames.add(projectName);
-
-                    // initiate the projectChat threads
-                    if(projectChats.get(projectName) == null) {
-                        this.newProjectChat(projectName);
-                    }
-                }
-
-                // invalidate from the projectChats map all deleted projects
-                // for each chatTask's key (aka projectName) that I have in memory...
-                for (Map.Entry<String, ProjectChatTask> chats : this.projectChats.entrySet()) {
-                    // ...if that key is not contained in the projectNames list,
-                    //  then remove the entry
-                    int index = projectNames.indexOf(chats.getKey());
-                    if (index == -1) {
-                        this.projectChats.remove(chats.getKey(), chats.getValue());
-                    }
-                }
-
-                System.out.println("\nMy projects list:");
-                if (projectNames.size() == 0) System.out.println("\t empty");
+                System.out.println(CommunicationProtocol.ANSI_YELLOW + "\nMy projects list:");
+                if (projectList.size() == 0) System.out.println("\t empty");
                 else {
-                    for (String project : projectNames) {
-                        System.out.println("- " + project);
+                    for (Project project : projectList) {
+                        System.out.println("- " + project.getName());
                     }
                 }
-            } catch (IOException | UnauthorizedUserException | ProjectNotExistException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
                 throw new CommunicationException();
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -292,19 +281,24 @@ public class ClientService {
 
             int responseCode = response.getStatusCode();
             // error cases
-            if (responseCode == CommunicationProtocol.CREATEPROJECT_ALREADYEXISTS)
-                throw new ProjectAlreadyExistException();
+            if (responseCode == CommunicationProtocol.CREATEPROJECT_ALREADYEXISTS) throw new ProjectAlreadyExistException();
             if (responseCode == CommunicationProtocol.CREATEPROJECT_NOMOREADDRESSES) throw new NoSuchAddressException();
             if (responseCode == CommunicationProtocol.CREATEPROJECT_NOMOREPORTS) throw new NoSuchPortException();
             if (responseCode == CommunicationProtocol.CHARS_NOT_ALLOWED) throw new CharactersNotAllowedException();
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
 
-            // initiate the projectChat thread
-            this.newProjectChat(projectName);
+            String chatAddress = this.mapper.readValue(
+                    response.getResponseBody(),
+                    new TypeReference<String>() {
 
-            System.out.println(SuccessMSG.PROJECT_CREATE_SUCCESS);
+                    }
+            );
+
+            projectChats.joinGroup(projectName, InetAddress.getByName(chatAddress));
+
+            System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.PROJECT_CREATE_SUCCESS);
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -328,9 +322,9 @@ public class ClientService {
             if (responseCode == CommunicationProtocol.USER_NOT_EXISTS) throw new UserNotExistException();
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
 
-            System.out.println(SuccessMSG.ADD_MEMBER_SUCCESS);
+            System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.ADD_MEMBER_SUCCESS);
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -358,7 +352,7 @@ public class ClientService {
                         }
                 );
 
-                System.out.println("Project \"" + projectName + "\" member-list: ");
+                System.out.println(CommunicationProtocol.ANSI_YELLOW + "Project \"" + projectName + "\" member-list: ");
                 for (String member : members) {
                     System.out.println("- " + member);
                 }
@@ -368,7 +362,7 @@ public class ClientService {
                 throw new CommunicationException();
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -396,7 +390,7 @@ public class ClientService {
                         }
                 );
 
-                System.out.println("TODO:");
+                System.out.println(CommunicationProtocol.ANSI_YELLOW + "TODO:");
                 for (String cardName : cards.get(CardStatus.TODO)) {
                     System.out.println("\t" + cardName);
                 }
@@ -418,7 +412,7 @@ public class ClientService {
                 throw new CommunicationException();
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -448,7 +442,7 @@ public class ClientService {
                         }
                 );
 
-                System.out.println("Card name: " + card.getName());
+                System.out.println(CommunicationProtocol.ANSI_YELLOW + "Card name: " + card.getName());
                 System.out.println("Card description: " + card.getDescription());
                 System.out.println("Card status: " + card.getStatus());
 
@@ -457,7 +451,7 @@ public class ClientService {
                 throw new CommunicationException();
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -482,9 +476,9 @@ public class ClientService {
             if (responseCode == CommunicationProtocol.ADD_CARD_ALREADYEXISTS) throw new CardAlreadyExistsException();
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
 
-            System.out.println(SuccessMSG.ADD_CARD_SUCCESS);
+            System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.ADD_CARD_SUCCESS);
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -513,9 +507,9 @@ public class ClientService {
             if (responseCode == CommunicationProtocol.MOVE_CARD_NOT_ALLOWED) throw new OperationNotAllowedException();
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
 
-            System.out.println(SuccessMSG.MOVE_CARD_SUCCESS);
+            System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.MOVE_CARD_SUCCESS);
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -545,13 +539,14 @@ public class ClientService {
                         }
                 );
 
-                System.out.println("History of the " + cardName + " card of the " + projectName + " project:");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                System.out.println(CommunicationProtocol.ANSI_YELLOW + "History of the " + cardName + " card of the " + projectName + " project:");
                 if(movements.size() == 0) System.out.println("The card is in TODO status and has not yet been moved by anyone");
                 else {
                     for (Movement movement : movements) {
                         System.out.println("from: " + movement.getFrom());
                         System.out.println("to:   " + movement.getTo());
-                        System.out.println("when: " + movement.getWhen() + "\n");
+                        System.out.println("when: " + movement.getWhen().format(formatter) + "\n");
                     }
                 }
             } catch (IOException e) {
@@ -559,50 +554,50 @@ public class ClientService {
                 throw new CommunicationException();
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
     public void readChat(String projectName) {
         if(isLogged) {
-            ProjectChatTask chat = projectChats.get(projectName);
-            if (chat != null && !chat.isTerminated()) {
-                LinkedList<UDPMessage> messages = chat.getMessages();
 
-                System.out.println("----------- Reading chat ------------- ");
+            LinkedList<UDPMessage> messages = projectChats.getMessages(projectName);
+            if (messages != null && !projectChats.isTerminated(projectName)) {
+                System.out.println(CommunicationProtocol.ANSI_RESET + "----------- Reading chat ------------- ");
                 if (messages.size() == 0) System.out.println("No new messages");
                 else {
                     int size = messages.size();
                     while (size > 0) {
                         UDPMessage message = messages.removeFirst();
-                        System.out.println(message.getAuthor() + ": " + message.getMessage());
+                        if(message.isFromSystem())
+                            System.out.println(CommunicationProtocol.ANSI_YELLOW + message.getAuthor() + ": " + message.getMessage());
+                        else if (message.getAuthor().equals(this.username))
+                            System.out.println(CommunicationProtocol.ANSI_BLUE + message.getAuthor() + ": " + message.getMessage());
+                        else System.out.println(CommunicationProtocol.ANSI_RESET + message.getAuthor() + ": " + message.getMessage());
                         size--;
                     }
                 }
-                System.out.println("------------- End chat --------------- ");
+                System.out.println(CommunicationProtocol.ANSI_RESET + "------------- End chat --------------- ");
             } else {
-                System.err.println(ErrorMSG.PROJECT_NOT_EXISTS);
+                System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.PROJECT_NOT_EXISTS);
             }
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
     public void sendChatMsg(String projectName, String message)
             throws ChatAddressException, IOException, DatagramTooBigException, ProjectNotExistException, UnauthorizedUserException, CommunicationException {
         if(isLogged) {
-            ProjectChatTask chat = projectChats.get(projectName);
-            if(chat == null) throw new ProjectNotExistException();
+            InetAddress group = projectChats.getChatAddress(projectName);
+            if(group == null) throw new ProjectNotExistException();
 
-            MulticastSocket multicastSocket = chat.getMulticastSocket();
-            if (multicastSocket == null) throw new ChatAddressException();
-
-            int port = chat.getPort();
-            InetAddress group = chat.getChatAddress();
+            MulticastSocket multicastSocket = projectChats.getMulticastSocket();
 
             UDPMessage udpMessage = new UDPMessage(
                     this.username,
                     message,
+                    projectName,
                     false
             );
             byte[] byteMessage = this.mapper.writeValueAsBytes(udpMessage);
@@ -615,17 +610,17 @@ public class ClientService {
                     byteMessage,
                     byteMessage.length,
                     group,
-                    port
+                    CommunicationProtocol.MULTICAST_GROUP_PORT
             );
             try {
                 multicastSocket.send(packet);
             } catch (IOException e) {
-                System.err.println(ErrorMSG.PROJECT_NOT_EXISTS);
+                System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.PROJECT_NOT_EXISTS);
                 return;
             }
-            System.out.println("Message sent");
+            System.out.println(CommunicationProtocol.ANSI_GREEN + "Message sent");
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -634,7 +629,7 @@ public class ClientService {
         if(isLogged) {
             // preparing message to send
             RequestMessage requestMessage = new RequestMessage(
-                    CommunicationProtocol.CANCELPROJECT_CMD,
+                    CommunicationProtocol.CANCEL_PROJECT_CMD,
                     projectName
             );
 
@@ -648,48 +643,9 @@ public class ClientService {
                 throw new ProjectNotCancelableException();
             if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
 
-            System.out.println(SuccessMSG.PROJECT_CANCEL_SUCCESS);
+            System.out.println(CommunicationProtocol.ANSI_GREEN + SuccessMSG.PROJECT_CANCEL_SUCCESS);
         } else {
-            System.err.println(ErrorMSG.NOT_LOGGED);
-        }
-    }
-
-
-    private void newProjectChat(String projectName)
-            throws CommunicationException, UnauthorizedUserException, ProjectNotExistException {
-
-        String chatAddressAndPort;
-
-        // preparing messagge to send
-        RequestMessage requestMessage = new RequestMessage(
-                CommunicationProtocol.READ_CHAT_CMD,
-                projectName
-        );
-
-        ResponseMessage response = this.sendTCPRequest(requestMessage);
-        int responseCode = response.getStatusCode();
-        // error cases
-        if (responseCode == CommunicationProtocol.PROJECT_NOT_EXISTS) throw new ProjectNotExistException();
-        if (responseCode == CommunicationProtocol.UNAUTHORIZED) throw new UnauthorizedUserException();
-        if (responseCode == CommunicationProtocol.COMMUNICATION_ERROR) throw new CommunicationException();
-
-        try {
-            chatAddressAndPort = this.mapper.readValue(
-                    response.getResponseBody(),
-                    new TypeReference<String>() {}
-            );
-
-            String[] tokens = chatAddressAndPort.split(":");
-            String chatAddress = tokens[0];
-            int port = Integer.parseInt(tokens[1]);
-
-            ProjectChatTask newChat = new ProjectChatTask(chatAddress, port);
-            this.projectChats.put(projectName, newChat);
-            new Thread(newChat).start();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new CommunicationException();
+            System.out.println(CommunicationProtocol.ANSI_RED + ErrorMSG.NOT_LOGGED);
         }
     }
 
@@ -707,15 +663,6 @@ public class ClientService {
             }
         }
         return false;
-    }
-
-    /**
-     * Terminate all projectChat threads
-     */
-    private void shutdownThreadPool() {
-        for(ProjectChatTask task : projectChats.values()) {
-            task.terminate();
-        }
     }
 
     /**

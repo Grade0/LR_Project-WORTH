@@ -1,0 +1,11 @@
+{
+  "name" : "prova4",
+  "members" : [ "usr1" ],
+  "creationDateTime" : "2021-06-21T21:02:20.6088805",
+  "statusLists" : {
+    "TODO" : [ ],
+    "DONE" : [ ],
+    "INPROGRESS" : [ ],
+    "TOBEREVISED" : [ ]
+  }
+}

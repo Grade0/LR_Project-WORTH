@@ -4,6 +4,7 @@ import com.client.RMICallbackNotify;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  * @author Davide Chen
@@ -32,4 +33,12 @@ public interface RMICallbackService extends Remote {
      * @throws RemoteException if there are connection errors
      * */
     void notifyServerDown() throws RemoteException;
+
+    /**
+     * @param projectName to which it refers
+     * @param members to be notified
+     *
+     * @throws RemoteException if there are connection errors
+     * */
+    void terminateChat(String projectName, List<String> members) throws RemoteException;
 }
