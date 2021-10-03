@@ -13,9 +13,9 @@
   <p align="center">
     End of Course Project A.A. 2020/21
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs (in Italian) »</strong></a>
+    <a href="docs/Relazione_WORTH"><strong>Explore the docs (in Italian) »</strong></a>
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature (in Italian)</a>
+    <a href="Progetto_WORTH_IT">Request Feature (in Italian)</a>
   </p>
 </p>
 
@@ -50,15 +50,15 @@
 ## About The Project
 
 <p align = "center">
-<img src = "img/serverside.png" width="40%" height="40%" border-radius: 90%>
- <img src = "img/clientside.png" width="40%" height="40%" border-radius: 90%>
+<img src = "img/CLI.png" width="80%" height="80%" border-radius: 90%>
 </p>
 <p align = "center">
-Fig.1 - Server side Command-Line-Interface
-Fig.2 - Client side Command-Line-Interface
+<img src = "img/chat.png" width="80%" height="80%" border-radius: 90%>
 </p>
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<p align = "center">
+Fig.3 - Chat Interface
+</p>
+<br>
 
 In recent years, numerous collaborative applications have been created for content sharing, messaging, videoconferencing, project management, etc. 
 In this educational project, WORTH(WORkTogetHer), we will focus on organizing and managing projects in a collaborative way. 
@@ -125,10 +125,11 @@ You will need Java jdk 12 to compile
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+The following is the diagram of an example of interaction between client and server illustrated in UML:
 
-_For more examples, please refer to the [Documentation](https://example.com)_
-
+<p align = "center">
+<img src = "img/interaction.jpg" width="70%" height="70%">
+</p>
 
 
 <!-- CONTACT -->
