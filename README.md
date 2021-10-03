@@ -83,9 +83,6 @@ The project consists in the implementation of WORkTogetHer (WORTH): a tool for m
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
 ### Prerequisites
 
 You will need Java jdk 12 to compile 
