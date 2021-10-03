@@ -106,17 +106,21 @@ You will need Java jdk 12 to compile
    ```sh
    cd LR_Project-WORTH
       ```
-3. Compile
+3. Create a file where are listed all the files to compile with javac
+   ```sh
+   dir /s /B *.java $>$ ./paths.txt
+      ```
+4. Compile
    1. Windows
      ```sh
      javac -d "bin" -cp lib/jackson-annotations-2.9.7.jar;lib/jackson-core-2.9.7.jar;lib/jackson-databind-2.9.7.jar;lib/jackson-datatype-jsr310-2.9.7.jar @paths.txt
      ```
-4. Run Server
+5. Run Server
    1. Windows
      ```sh
      java -cp lib/jackson-annotations-2.9.7.jar;lib/jackson-core-2.9.7.jar;lib/jackson-databind-2.9.7.jar;lib/jackson-datatype-jsr310-2.9.7.jar;bin com.ServerMain
      ```
-5. Run Client
+6. Run Client
    1. Windows 
      ```sh
      java -cp  lib/jackson-annotations-2.9.7.jar;lib/jackson-core-2.9.7.jar;lib/jackson-databind-2.9.7.jar;lib/jackson-datatype-jsr310-2.9.7.jar;bin com.ClientMain
