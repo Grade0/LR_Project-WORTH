@@ -15,7 +15,7 @@
     <br />
     <a href="docs/Relazione_WORTH.pdf"><strong>Explore the docs (in Italian) »</strong></a>
     <br />
-    <a href="docs/Progetto_WORTH_IT.pdf">Request Feature (in Italian)</a>
+    <a href="docs/ProgettoWORTH_IT.pdf">Request Feature (in Italian)</a>
   </p>
 </p>
 
