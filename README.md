@@ -13,9 +13,9 @@
   <p align="center">
     End of Course Project A.A. 2020/21
     <br />
-    <a href="docs/Relazione_WORTH"><strong>Explore the docs (in Italian) »</strong></a>
+    <a href="docs/Relazione_WORTH.pdf"><strong>Explore the docs (in Italian) »</strong></a>
     <br />
-    <a href="Progetto_WORTH_IT">Request Feature (in Italian)</a>
+    <a href="Progetto_WORTH_IT.pdf">Request Feature (in Italian)</a>
   </p>
 </p>
 
