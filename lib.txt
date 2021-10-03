@@ -1,4 +1,0 @@
-C:\Users\david\Documenti\GitHub\LR_Project-WORTH\src\com\lib\jackson-annotations-2.9.7.jar
-C:\Users\david\Documenti\GitHub\LR_Project-WORTH\src\com\lib\jackson-core-2.9.7.jar
-C:\Users\david\Documenti\GitHub\LR_Project-WORTH\src\com\lib\jackson-databind-2.9.7.jar
-C:\Users\david\Documenti\GitHub\LR_Project-WORTH\src\com\lib\jackson-datatype-jsr310-2.9.7.jar
