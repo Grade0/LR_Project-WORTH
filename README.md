@@ -5,7 +5,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="img/logo.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">WORTH - WORk TogetHer</h3>
@@ -14,7 +14,6 @@
     End of Course Project A.A. 2020/21
     <br />
     <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs (in Italian) »</strong></a>
-    <br />
     <br />
     <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature (in Italian)</a>
   </p>
@@ -49,6 +48,15 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
+
+<p align = "center">
+<img src = "img/serverside.png" width="40%" height="40%" border-radius: 90%>
+ <img src = "img/clientside.png" width="40%" height="40%" border-radius: 90%>
+</p>
+<p align = "center">
+Fig.1 - Server side Command-Line-Interface
+Fig.2 - Client side Command-Line-Interface
+</p>
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
