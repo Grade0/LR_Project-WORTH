@@ -97,7 +97,7 @@ You will need Java jdk 12 to compile
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/Grade0/LR_Project-WORTH.git
+   git clone https://github.com/Grade0/LR_PRoject-WORTH.git
    ```
 2. Open directory
    ```sh
